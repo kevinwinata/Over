@@ -7,6 +7,7 @@
 cv::Mat img;
 int maxDistance = 15;
 std::vector<std::vector<int>> labels;
+std::vector<std::vector<int>> edges;
 std::vector<Region> regions;
 
 int main(int argc, char** argv)
@@ -34,6 +35,12 @@ int main(int argc, char** argv)
 
 	cv::namedWindow("Segmentated", CV_WINDOW_AUTOSIZE);
 	cv::imshow("Segmentated", img_seg);
+
+	cv::Mat img_edge = cv::Mat::zeros(img.rows, img.cols, CV_8UC1);
+	findEdges(labels, edges, img.rows, img.cols);
+	drawEdges(img_edge, edges);
+	cv::namedWindow("Edges", CV_WINDOW_AUTOSIZE);
+	cv::imshow("Edges", img_edge);
 	
 	cv::waitKey(0); // Wait for a keystroke in the window
 	return 0;

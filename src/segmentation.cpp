@@ -7,7 +7,7 @@
 void colorMapSegmentation(cv::Mat& img, std::vector<std::vector<int>>& labels, std::vector<Region>& regions, int maxDistance)
 {
 	std::stack<std::pair<int, int>> stack;
-	long curlab = 0;
+	int curlab = 0;
 	regions.clear();
 
 	labels.resize(img.rows, std::vector<int>(img.cols, 0));
@@ -47,8 +47,7 @@ void colorMapSegmentation(cv::Mat& img, std::vector<std::vector<int>>& labels, s
 							labels[ypos][xpos] == 0)
 						{
 							temp = img.ptr<cv::Point3_<uchar>>(ypos, xpos);
-							int dist = reg.countDiffToAvg(*temp);
-							if (dist <= maxDistance) {
+							if (reg.countDiffToAvg(*temp) <= maxDistance) {
 								stack.push(std::make_pair(ypos, xpos));
 							}
 						}
@@ -61,6 +60,19 @@ void colorMapSegmentation(cv::Mat& img, std::vector<std::vector<int>>& labels, s
 	std::cout << curlab << std::endl;
 }
 
+void findEdges(std::vector<std::vector<int>>& labels, std::vector<std::vector<int>>& edges, int rows, int cols)
+{
+	edges.resize(rows, std::vector<int>(cols, 0));
+	for (int i = 0; i < rows; i++) {
+		for (int j = 0; j < cols; j++) {
+			if ((i > 0 && labels[i - 1][j] != labels[i][j] && edges[i - 1][j] != 1) ||
+				(j > 0 && labels[i][j - 1] != labels[i][j] && edges[i][j - 1] != 1)) {
+				edges[i][j] = 1;
+			}
+		}
+	}
+}
+
 void drawSegments(cv::Mat& img_seg, std::vector<std::vector<int>>& labels)
 {
 	for (int i = 0; i < img_seg.rows; i++) {
@@ -69,6 +81,17 @@ void drawSegments(cv::Mat& img_seg, std::vector<std::vector<int>>& labels)
 			p->x = labels[i][j] * 25 % 255;
 			p->y = labels[i][j] * 100 % 255;
 			p->z = labels[i][j] * 180 % 255;
+		}
+	}
+}
+
+void drawEdges(cv::Mat& img_edge, std::vector<std::vector<int>>& edges)
+{
+	for (int i = 0; i < img_edge.rows; i++) {
+		for (int j = 0; j < img_edge.cols; j++) {
+			if (edges[i][j] == 1) {
+				*(img_edge.ptr<uchar>(i, j)) = 255;
+			}
 		}
 	}
 }
