@@ -47,7 +47,7 @@ void colorMapSegmentation(cv::Mat& img, std::vector<std::vector<int>>& labels, s
 							labels[ypos][xpos] == 0)
 						{
 							temp = img.ptr<cv::Point3_<uchar>>(ypos, xpos);
-							int dist = reg.countDistToAvg(*temp);
+							int dist = reg.countDiffToAvg(*temp);
 							if (dist <= maxDistance) {
 								stack.push(std::make_pair(ypos, xpos));
 							}

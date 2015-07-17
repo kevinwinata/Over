@@ -17,6 +17,7 @@ public:
 	void addPixel(cv::Point3_<uchar>& pixel);
 	std::string getAvgColor();
 	int countDistToAvg(cv::Point3_<uchar>& pixel);
+	double countDiffToAvg(cv::Point3_<uchar>& pixel);
 	void printProps();
 };
 

@@ -5,7 +5,7 @@
 #include "segmentation.h"
 
 cv::Mat img;
-int maxDistance = 40;
+int maxDistance = 15;
 std::vector<std::vector<int>> labels;
 std::vector<Region> regions;
 
