@@ -146,6 +146,12 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="src\main.cpp" />
+    <ClCompile Include="src\region.cpp" />
+    <ClCompile Include="src\segmentation.cpp" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="src\region.h" />
+    <ClInclude Include="src\segmentation.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
