@@ -4,13 +4,13 @@
 #include <stack>
 #include <array>
 
-void colorMapSegmentation(cv::Mat& img, std::vector<std::vector<int>>& labels, std::vector<Region>& regions, int maxDistance)
+void colorMapSegmentation(cv::Mat& img, std::vector<std::vector<long>>& labels, std::vector<Region>& regions, int maxDistance)
 {
 	std::stack<std::pair<int, int>> stack;
 	int curlab = 0;
 	regions.clear();
 
-	labels.resize(img.rows, std::vector<int>(img.cols, 0));
+	labels.resize(img.rows, std::vector<long>(img.cols, 0));
 
 	std::array<std::pair<int, int>, 4> dir;
 	dir[0] = std::make_pair(-1, 0);
@@ -60,20 +60,20 @@ void colorMapSegmentation(cv::Mat& img, std::vector<std::vector<int>>& labels, s
 	std::cout << curlab << std::endl;
 }
 
-void findEdges(std::vector<std::vector<int>>& labels, std::vector<std::vector<int>>& edges, int rows, int cols)
+void findContour(std::vector<std::vector<long>>& labels, std::vector<std::vector<bool>>& contour, int rows, int cols)
 {
-	edges.resize(rows, std::vector<int>(cols, 0));
+	contour.resize(rows, std::vector<bool>(cols, false));
 	for (int i = 0; i < rows; i++) {
 		for (int j = 0; j < cols; j++) {
-			if ((i > 0 && labels[i - 1][j] != labels[i][j] && edges[i - 1][j] != 1) ||
-				(j > 0 && labels[i][j - 1] != labels[i][j] && edges[i][j - 1] != 1)) {
-				edges[i][j] = 1;
+			if ((i > 0 && labels[i - 1][j] != labels[i][j] && contour[i - 1][j] != 1) ||
+				(j > 0 && labels[i][j - 1] != labels[i][j] && contour[i][j - 1] != 1)) {
+				contour[i][j] = true;
 			}
 		}
 	}
 }
 
-void drawSegments(cv::Mat& img_seg, std::vector<std::vector<int>>& labels)
+void drawSegments(cv::Mat& img_seg, std::vector<std::vector<long>>& labels)
 {
 	for (int i = 0; i < img_seg.rows; i++) {
 		for (int j = 0; j < img_seg.cols; j++) {
@@ -85,12 +85,12 @@ void drawSegments(cv::Mat& img_seg, std::vector<std::vector<int>>& labels)
 	}
 }
 
-void drawEdges(cv::Mat& img_edge, std::vector<std::vector<int>>& edges)
+void drawContour(cv::Mat& img_contour, std::vector<std::vector<bool>>& contour)
 {
-	for (int i = 0; i < img_edge.rows; i++) {
-		for (int j = 0; j < img_edge.cols; j++) {
-			if (edges[i][j] == 1) {
-				*(img_edge.ptr<uchar>(i, j)) = 255;
+	for (int i = 0; i < img_contour.rows; i++) {
+		for (int j = 0; j < img_contour.cols; j++) {
+			if (contour[i][j]) {
+				*(img_contour.ptr<uchar>(i, j)) = 255;
 			}
 		}
 	}

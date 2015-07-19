@@ -32,5 +32,8 @@
     <ClInclude Include="src\region.h">
       <Filter>Source Files</Filter>
     </ClInclude>
+    <ClInclude Include="src\tracing.h">
+      <Filter>Source Files</Filter>
+    </ClInclude>
   </ItemGroup>
 </Project>
