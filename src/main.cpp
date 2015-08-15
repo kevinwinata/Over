@@ -3,12 +3,14 @@
 #include <iostream>
 #include "region.h"
 #include "segmentation.h"
+#include "tracing.h"
 
 cv::Mat img;
 int maxDistance = 15;
 std::vector<std::vector<long>> labels;
 std::vector<std::vector<bool>> contour;
 std::vector<Region> regions;
+std::vector<std::vector<cv::Point>> edges;
 
 int main(int argc, char** argv)
 {
@@ -39,8 +41,14 @@ int main(int argc, char** argv)
 	cv::Mat img_contour = cv::Mat::zeros(img.rows, img.cols, CV_8UC1);
 	findContour(labels, contour, img.rows, img.cols);
 	drawContour(img_contour, contour);
+	cv::namedWindow("Contour", CV_WINDOW_AUTOSIZE);
+	cv::imshow("Contour", img_contour);
+
+	cv::Mat img_edge = cv::Mat::zeros(img.rows, img.cols, CV_8UC3);
+	separateEdges(contour, edges, img.rows, img.cols);
+	drawEdges(img_edge, edges);
 	cv::namedWindow("Edges", CV_WINDOW_AUTOSIZE);
-	cv::imshow("Edges", img_contour);
+	cv::imshow("Edges", img_edge);
 	
 	cv::waitKey(0); // Wait for a keystroke in the window
 	return 0;

@@ -1,4 +1,5 @@
 #include "segmentation.h"
+#include "utils.h"
 #include <opencv2/imgproc.hpp>
 #include <iostream>
 #include <stack>
@@ -42,9 +43,7 @@ void colorMapSegmentation(cv::Mat& img, std::vector<std::vector<long>>& labels, 
 					for (std::pair<int, int> p : dir) {
 						int ypos = pos.first + p.first;
 						int xpos = pos.second + p.second;
-						if (ypos >= 0 && ypos < img.rows &&
-							xpos >= 0 && xpos < img.cols &&
-							labels[ypos][xpos] == 0)
+						if (legalPoint(ypos, xpos, img.rows, img.cols) && labels[ypos][xpos] == 0)
 						{
 							temp = img.ptr<cv::Point3_<uchar>>(ypos, xpos);
 							if (reg.countDiffToAvg(*temp) <= maxDistance) {

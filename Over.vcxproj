@@ -148,11 +148,14 @@
     <ClCompile Include="src\main.cpp" />
     <ClCompile Include="src\region.cpp" />
     <ClCompile Include="src\segmentation.cpp" />
+    <ClCompile Include="src\tracing.cpp" />
+    <ClCompile Include="src\utils.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="src\region.h" />
     <ClInclude Include="src\segmentation.h" />
     <ClInclude Include="src\tracing.h" />
+    <ClInclude Include="src\utils.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

@@ -24,6 +24,12 @@
     <ClCompile Include="src\region.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="src\tracing.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="src\utils.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="src\segmentation.h">
@@ -33,6 +39,9 @@
       <Filter>Source Files</Filter>
     </ClInclude>
     <ClInclude Include="src\tracing.h">
+      <Filter>Source Files</Filter>
+    </ClInclude>
+    <ClInclude Include="src\utils.h">
       <Filter>Source Files</Filter>
     </ClInclude>
   </ItemGroup>
