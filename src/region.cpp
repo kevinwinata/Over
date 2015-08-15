@@ -1,6 +1,7 @@
 #include "region.h"
 #include "utils.h"
 #include <iostream>
+#include <algorithm>
 
 Region::Region() {
 	r_sums = 0;
@@ -14,6 +15,12 @@ void Region::addPixel(cv::Point3_<uchar>& pixel) {
 	g_sums += pixel.y;
 	b_sums += pixel.x;
 	n++;
+}
+
+void Region::addEdge(int idx) {
+	if (std::find(edges.begin(), edges.end(), idx) == edges.end()) {
+		edges.push_back(idx);
+	}
 }
 
 std::string Region::getAvgColor() {
@@ -45,9 +52,13 @@ double Region::countDiffToAvg(cv::Point3_<uchar>& pixel) {
 }
 
 void Region::printProps() {
-	std::cout << "r_sums : " << r_sums << std::endl;
+	/*std::cout << "r_sums : " << r_sums << std::endl;
 	std::cout << "g_sums : " << g_sums << std::endl;
 	std::cout << "b_sums : " << b_sums << std::endl;
 	std::cout << "n : " << n << std::endl;
-	std::cout << "color : " << getAvgColor() << std::endl;
+	std::cout << "color : " << getAvgColor() << std::endl;*/
+	std::cout << "edges : ";
+	for (int i : edges) {
+		std::cout << i << " ";
+	}
 }

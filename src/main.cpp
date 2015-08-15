@@ -12,6 +12,17 @@ std::vector<std::vector<bool>> contour;
 std::vector<Region> regions;
 std::vector<std::vector<cv::Point>> edges;
 
+void mouseCallback(int event, int x, int y, int flags, void* userdata)
+{
+	if (event == cv::EVENT_LBUTTONDOWN)
+	{
+		Region& region = regions[labels[y][x] - 1];
+		std::cout << "region : " << labels[y][x] << std::endl;
+		region.printProps();
+		std::cout << std::endl;
+	}
+}
+
 int main(int argc, char** argv)
 {
 	if (argc != 2)
@@ -45,10 +56,11 @@ int main(int argc, char** argv)
 	cv::imshow("Contour", img_contour);
 
 	cv::Mat img_edge = cv::Mat::zeros(img.rows, img.cols, CV_8UC3);
-	separateEdges(contour, edges, img.rows, img.cols);
+	separateEdges(contour, edges, regions, labels, img.rows, img.cols);
 	drawEdges(img_edge, edges);
 	cv::namedWindow("Edges", CV_WINDOW_AUTOSIZE);
 	cv::imshow("Edges", img_edge);
+	cv::setMouseCallback("Edges", mouseCallback, NULL);
 	
 	cv::waitKey(0); // Wait for a keystroke in the window
 	return 0;

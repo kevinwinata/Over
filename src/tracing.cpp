@@ -58,7 +58,7 @@ void segmentEdges(std::vector<std::vector<bool>>& contour, std::vector<std::vect
 	std::cout << "total edges : " << edgepoints.size() << "\n";
 }
 
-void separateEdges(std::vector<std::vector<bool>>& contour, std::vector<std::vector<cv::Point>>& edges, int rows, int cols)
+void separateEdges(std::vector<std::vector<bool>>& contour, std::vector<std::vector<cv::Point>>& edges, std::vector<Region>& regions, std::vector<std::vector<long>>& labels, int rows, int cols)
 {
 	std::array<std::pair<int, int>, 8> dir;
 	dir[0] = std::make_pair(0, 1);
@@ -85,6 +85,13 @@ void separateEdges(std::vector<std::vector<bool>>& contour, std::vector<std::vec
 
 					int n;
 					bool found = false;
+
+					regions[labels[p->y][p->x]-1].addEdge(edges.size());
+					if (p->y > 0)
+					regions[labels[p->y-1][p->x]-1].addEdge(edges.size());
+					if (p->x > 0)
+					regions[labels[p->y][p->x-1]-1].addEdge(edges.size());
+
 					for (n = 7; n >= 0; n--) {
 						int ypos = p->y + dir[n].first;
 						int xpos = p->x + dir[n].second;
