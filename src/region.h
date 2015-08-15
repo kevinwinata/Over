@@ -5,14 +5,13 @@
 
 class Region
 {
-private:
+public:
 	long r_sums;
 	long g_sums;
 	long b_sums;
 	long n;
 	std::vector<int> edges;
 
-public:
 	Region();
 
 	void addPixel(cv::Point3_<uchar>& pixel);

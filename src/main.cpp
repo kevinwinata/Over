@@ -2,6 +2,7 @@
 #include <opencv2/highgui/highgui.hpp>
 #include <iostream>
 #include "region.h"
+#include "edge.h"
 #include "segmentation.h"
 #include "tracing.h"
 
@@ -10,7 +11,7 @@ int maxDistance = 15;
 std::vector<std::vector<long>> labels;
 std::vector<std::vector<bool>> contour;
 std::vector<Region> regions;
-std::vector<std::vector<cv::Point>> edges;
+std::vector<Edge> edges;
 
 void mouseCallback(int event, int x, int y, int flags, void* userdata)
 {

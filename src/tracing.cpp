@@ -58,7 +58,7 @@ void segmentEdges(std::vector<std::vector<bool>>& contour, std::vector<std::vect
 	std::cout << "total edges : " << edgepoints.size() << "\n";
 }
 
-void separateEdges(std::vector<std::vector<bool>>& contour, std::vector<std::vector<cv::Point>>& edges, std::vector<Region>& regions, std::vector<std::vector<long>>& labels, int rows, int cols)
+void separateEdges(std::vector<std::vector<bool>>& contour, std::vector<Edge>& edges, std::vector<Region>& regions, std::vector<std::vector<long>>& labels, int rows, int cols)
 {
 	std::array<std::pair<int, int>, 8> dir;
 	dir[0] = std::make_pair(0, 1);
@@ -73,14 +73,14 @@ void separateEdges(std::vector<std::vector<bool>>& contour, std::vector<std::vec
 	for (int i = 0; i < rows; i++) {
 		for (int j = 0; j < cols; j++) {
 			if (contour[i][j]) {
-				std::vector<cv::Point> edge;
+				Edge edge;
 				cv::Point* p = &(cv::Point(j, i));
 
 				bool stop = false;
 				int prevdir = 0;
 
 				while (!stop) {
-					edge.push_back(*p);
+					edge.addPoints(*p);
 					contour[p->y][p->x] = false;
 
 					int n;
@@ -116,11 +116,11 @@ void separateEdges(std::vector<std::vector<bool>>& contour, std::vector<std::vec
 	}
 }
 
-void drawEdges(cv::Mat& img_edge, std::vector<std::vector<cv::Point>>& edgepoints)
+void drawEdges(cv::Mat& img_edge, std::vector<Edge>& edges)
 {
-	size_t length = edgepoints.size();
+	size_t length = edges.size();
 	for (int i = 0; i < length; i++) {
-		for (cv::Point pos : edgepoints[i]) {
+		for (cv::Point pos : edges[i].points) {
 			cv::Point3_<uchar>* p = img_edge.ptr<cv::Point3_<uchar>>(pos.y, pos.x);
 			p->x = (i + 1) * 25 % 255;
 			p->y = (i + 1) * 100 % 255;
