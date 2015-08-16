@@ -2,6 +2,7 @@
 #include "utils.h"
 #include <array>
 #include <iostream>
+#include <opencv2/imgproc.hpp>
 #include <opencv2/highgui/highgui.hpp>
 
 void segmentEdges(std::vector<std::vector<bool>>& contour, std::vector<std::vector<cv::Point>>& edgepoints, int rows, int cols)
@@ -129,7 +130,26 @@ void drawEdges(cv::Mat& img_edge, std::vector<Edge>& edges)
 	}
 }
 
-void trace(std::vector<std::vector<cv::Point>>& edgepoints, std::vector<std::vector<bool>>& contour, int rows, int cols)
+void drawCurves(cv::Mat& img_curve, std::vector<Edge>& edges)
 {
-	
+	for (Edge edge : edges) {
+		if (edge.isCurve && edge.points.size() > 2) {
+			edge.bezierFit();
+
+			cv::Point points[1][5];
+			points[0][0] = edge.points.front();
+			points[0][1] = edge.control1;
+			points[0][2] = edge.control2;
+			points[0][3] = edge.points.back();
+
+			const cv::Point* ppt[1] = { points[0] };
+			int npt[] = { 4 }; 
+			std::cout << points[0][0] << " " << points[0][1] << " " << points[0][2] << " " << points[0][3] << "\n";
+
+			cv::polylines(img_curve, ppt, npt, 1, false, 255, 1, 8, 0);
+		}
+		else {
+			cv::line(img_curve, edge.points.front(), edge.points.back(), 255, 1, 8, 0);
+		}
+	}
 }

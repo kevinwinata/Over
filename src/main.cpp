@@ -1,6 +1,7 @@
 #include <opencv2/core/core.hpp>
 #include <opencv2/highgui/highgui.hpp>
 #include <iostream>
+#include <array>
 #include "region.h"
 #include "edge.h"
 #include "segmentation.h"
@@ -62,6 +63,11 @@ int main(int argc, char** argv)
 	cv::namedWindow("Edges", CV_WINDOW_AUTOSIZE);
 	cv::imshow("Edges", img_edge);
 	cv::setMouseCallback("Edges", mouseCallback, NULL);
+
+	cv::Mat img_curve = cv::Mat::zeros(img.rows, img.cols, CV_8UC1);
+	drawCurves(img_curve, edges);
+	cv::namedWindow("Curves", CV_WINDOW_AUTOSIZE);
+	cv::imshow("Curves", img_curve);
 	
 	cv::waitKey(0); // Wait for a keystroke in the window
 	return 0;
