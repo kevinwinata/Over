@@ -61,15 +61,8 @@ void segmentEdges(std::vector<std::vector<bool>>& contour, std::vector<std::vect
 
 void separateEdges(std::vector<std::vector<bool>>& contour, std::vector<Edge>& edges, std::vector<Region>& regions, std::vector<std::vector<long>>& labels, int rows, int cols)
 {
-	std::array<std::pair<int, int>, 8> dir;
-	dir[0] = std::make_pair(0, 1);
-	dir[1] = std::make_pair(-1, 1);
-	dir[2] = std::make_pair(-1, 0);
-	dir[3] = std::make_pair(-1, -1);
-	dir[4] = std::make_pair(0, -1);
-	dir[5] = std::make_pair(1, -1);
-	dir[6] = std::make_pair(1, 0);
-	dir[7] = std::make_pair(1, 1);
+	std::array<int, 8> dir_x = { 1, 1, 0, -1, -1, -1, 0, 1 };
+	std::array<int, 8> dir_y = { 0, -1, -1, -1, 0, 1, 1, 1 };
 
 	for (int i = 0; i < rows; i++) {
 		for (int j = 0; j < cols; j++) {
@@ -94,8 +87,7 @@ void separateEdges(std::vector<std::vector<bool>>& contour, std::vector<Edge>& e
 					regions[labels[p->y][p->x-1]-1].addEdge(edges.size());
 
 					for (n = 7; n >= 0; n--) {
-						int ypos = p->y + dir[n].first;
-						int xpos = p->x + dir[n].second;
+						int ypos = p->y + dir_y[n], xpos = p->x + dir_x[n];
 						if (legalPoint(ypos, xpos, rows, cols) && contour[ypos][xpos]) {
 							p = &(cv::Point(xpos, ypos));
 							found = true;
@@ -103,9 +95,7 @@ void separateEdges(std::vector<std::vector<bool>>& contour, std::vector<Edge>& e
 						}
 					}
 
-					if (!found || !dirDiff(prevdir, n)) {
-						//if (prevdir > 3 && prevdir < 7)
-							//std::cout << prevdir << " " << n << "\n";
+					if (!found || (std::abs(dir_x[n] - dir_x[prevdir]) + std::abs(dir_y[n] - dir_y[prevdir]) > 2) ) {
 						stop = true;
 					}
 					prevdir = n;

@@ -6,16 +6,6 @@ bool legalPoint(int i, int j, int rows, int cols)
 	return (i >= 0 && i < rows && j >= 0 && j < cols);
 }
 
-bool dirDiff(int dir1, int dir2)
-{
-	switch (dir1) 
-	{
-		case 0: return (dir2 == 0 || dir2 == 1 || dir2 == 7);
-		case 7: return (dir2 == 7 || dir2 == 0 || dir2 == 6);
-		default: return (std::abs(dir2 - dir1) < 2);
-	}
-}
-
 cv::Point3_<double> rgbToXyz(cv::Point3_<uchar> pixel) {
 	double r = (double)pixel.z / 255.0;
 	double g = (double)pixel.y / 255.0;
