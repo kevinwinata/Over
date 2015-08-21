@@ -59,14 +59,14 @@ void colorMapSegmentation(cv::Mat& img, std::vector<std::vector<long>>& labels, 
 	std::cout << curlab << std::endl;
 }
 
-void findContour(std::vector<std::vector<long>>& labels, std::vector<std::vector<bool>>& contour, int rows, int cols)
+void findContour(std::vector<std::vector<long>>& labels, std::vector<std::vector<char>>& contour, int rows, int cols)
 {
-	contour.resize(rows, std::vector<bool>(cols, false));
+	contour.resize(rows, std::vector<char>(cols, 0));
 	for (int i = 0; i < rows; i++) {
 		for (int j = 0; j < cols; j++) {
 			if ((i > 0 && labels[i - 1][j] != labels[i][j] && contour[i - 1][j] != 1) ||
 				(j > 0 && labels[i][j - 1] != labels[i][j] && contour[i][j - 1] != 1)) {
-				contour[i][j] = true;
+				contour[i][j] = 1;
 			}
 		}
 	}
@@ -84,11 +84,11 @@ void drawSegments(cv::Mat& img_seg, std::vector<std::vector<long>>& labels)
 	}
 }
 
-void drawContour(cv::Mat& img_contour, std::vector<std::vector<bool>>& contour)
+void drawContour(cv::Mat& img_contour, std::vector<std::vector<char>>& contour)
 {
 	for (int i = 0; i < img_contour.rows; i++) {
 		for (int j = 0; j < img_contour.cols; j++) {
-			if (contour[i][j]) {
+			if (contour[i][j] == 1) {
 				*(img_contour.ptr<uchar>(i, j)) = 255;
 			}
 		}

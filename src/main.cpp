@@ -10,7 +10,7 @@
 cv::Mat img;
 int maxDistance = 15;
 std::vector<std::vector<long>> labels;
-std::vector<std::vector<bool>> contour;
+std::vector<std::vector<char>> contour;
 std::vector<Region> regions;
 std::vector<Edge> edges;
 
@@ -57,17 +57,16 @@ int main(int argc, char** argv)
 	cv::namedWindow("Contour", CV_WINDOW_AUTOSIZE);
 	cv::imshow("Contour", img_contour);
 
-	cv::Mat img_edge = cv::Mat::zeros(img.rows, img.cols, CV_8UC3);
+	/*cv::Mat img_edge = cv::Mat::zeros(img.rows, img.cols, CV_8UC3);
 	separateEdges(contour, edges, regions, labels, img.rows, img.cols);
 	drawEdges(img_edge, edges);
 	cv::namedWindow("Edges", CV_WINDOW_AUTOSIZE);
 	cv::imshow("Edges", img_edge);
 	cv::setMouseCallback("Edges", mouseCallback, NULL);
 
-	cv::Mat img_curve = cv::Mat::zeros(img.rows, img.cols, CV_8UC1);
-	drawCurves(img_curve, edges);
-	cv::namedWindow("Curves", CV_WINDOW_AUTOSIZE);
-	cv::imshow("Curves", img_curve);
+	writeVector("example.svg", edges, img.cols, img.rows);*/
+
+	contourChainCode(contour, img.rows, img.cols);
 	
 	cv::waitKey(0); // Wait for a keystroke in the window
 	return 0;

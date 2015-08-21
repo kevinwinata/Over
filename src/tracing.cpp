@@ -1,7 +1,9 @@
 #include "tracing.h"
 #include "utils.h"
 #include <array>
+#include <stack>
 #include <iostream>
+#include <fstream>
 #include <opencv2/imgproc.hpp>
 #include <opencv2/highgui/highgui.hpp>
 
@@ -100,11 +102,72 @@ void separateEdges(std::vector<std::vector<bool>>& contour, std::vector<Edge>& e
 					}
 					prevdir = n;
 				}
-
+				//edge.bezierFit();
 				edges.push_back(edge);
 			}
 		}
 	}
+}
+
+void contourChainCode(std::vector<std::vector<char>>& contour, int rows, int cols)
+{
+	std::array<char, 8> dir_x = { 1, 1, 0, -1, -1, -1, 0, 1 };
+	std::array<char, 8> dir_y = { 0, -1, -1, -1, 0, 1, 1, 1 };
+
+	cv::Mat img_edge = cv::Mat::zeros(rows, cols, CV_8UC3);
+	std::vector<std::vector<std::pair<cv::Point, int>>> chains;
+
+	for (int i = 0; i < rows; i++) {
+		for (int j = 0; j < cols; j++) {
+			if (contour[i][j] != 0) {
+				//if (contour[i][j] == 2) std::cout << i << " " << j << "\n";
+				std::vector<std::pair<cv::Point, int>> chain;
+				cv::Point* p = &(cv::Point(j, i));
+
+				bool stop = false;
+				int prev_ai = -1;
+
+				while (!stop) {
+					chain.push_back(std::make_pair(*p, prev_ai));
+
+					contour[p->y][p->x] = 0;
+
+					int n = 0;
+					bool found = false;
+					int x, y;
+
+					for (int ai = 0; ai < 8; ai++) {
+						int ypos = p->y + dir_y[ai], xpos = p->x + dir_x[ai];
+						if (legalPoint(ypos, xpos, rows, cols) && contour[ypos][xpos] == 1) {
+							x = xpos, y = ypos;
+							prev_ai = ai;
+							n++;
+							found = true;
+						}
+					}
+					if (n > 1) contour[p->y][p->x] = 2;
+					if (found) p = &(cv::Point(x, y));
+
+					stop = !found;
+				}
+				chains.push_back(chain);
+			}
+		}
+	}
+
+	size_t length = chains.size();
+	for (int i = 0; i < length; i++) {
+		for (std::pair<cv::Point, int> pos : chains[i]) {
+			cv::Point3_<uchar>* p = img_edge.ptr<cv::Point3_<uchar>>(pos.first.y, pos.first.x);
+			p->x = (i + 1) * 25 % 255;
+			p->y = (i + 1) * 100 % 255;
+			p->z = (i + 1) * 180 % 255;
+			std::cout << pos.second;
+		}
+		std::cout << "\n\n";
+	}
+	cv::namedWindow("Edges", CV_WINDOW_AUTOSIZE);
+	cv::imshow("Edges", img_edge);
 }
 
 void drawEdges(cv::Mat& img_edge, std::vector<Edge>& edges)
@@ -142,4 +205,37 @@ void drawCurves(cv::Mat& img_curve, std::vector<Edge>& edges)
 			cv::line(img_curve, edge.points.front(), edge.points.back(), 255, 1, 8, 0);
 		}
 	}
+}
+
+void writeVector(std::string filename, std::vector<Edge>& edges, int width, int height)
+{
+	std::ofstream file;
+	file.open(filename);
+
+	file << "<?xml version=\"1.0\" encoding=\"utf-8\"?>\n";
+	file << "<!DOCTYPE svg PUBLIC \" -//W3C//DTD SVG 1.1//EN\" ";
+	file << "\"http://www.w3.org/Graphics/SVG/1.1/DTD/svg11.dtd\">\n";
+
+	file << "<svg version=\"1.1\"  xmlns=\"http://www.w3.org/2000/svg\" ";
+	file << "width=\"" << width << "px\" ";
+	file << "height = \"" << height << "\" ";
+	file << "viewBox=\"0 0 " << width << " " << height << "\" xml:space=\"preserve\">\n";
+
+	for (Edge edge : edges) {
+		file << "<path d=\"";
+		file << "M " << edge.points.front().x << " " << edge.points.front().y << " ";
+
+		if (edge.isCurve && edge.points.size() > 2) {
+			file << "C " <<
+				edge.control1.x << " " << edge.control1.y << " " <<
+				edge.control2.x << " " << edge.control2.y << " " <<
+				edge.points.back().x << " " << edge.points.back().y << " ";
+		}
+		else {
+			file << "L " << edge.points.back().x << " " << edge.points.back().y << " ";
+		}
+		file << "\" fill=\"none\" stroke=\"#000000\"/>\n";
+	}
+	file << "</svg>";
+	file.close();
 }
