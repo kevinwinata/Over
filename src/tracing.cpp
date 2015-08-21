@@ -157,17 +157,60 @@ void contourChainCode(std::vector<std::vector<char>>& contour, int rows, int col
 
 	size_t length = chains.size();
 	for (int i = 0; i < length; i++) {
-		for (std::pair<cv::Point, int> pos : chains[i]) {
+		for (auto pos : chains[i]) {
 			cv::Point3_<uchar>* p = img_edge.ptr<cv::Point3_<uchar>>(pos.first.y, pos.first.x);
 			p->x = (i + 1) * 25 % 255;
 			p->y = (i + 1) * 100 % 255;
 			p->z = (i + 1) * 180 % 255;
-			std::cout << pos.second;
+			//std::cout << pos.second;
 		}
-		std::cout << "\n\n";
+		//std::cout << "\n\n";
 	}
 	cv::namedWindow("Edges", CV_WINDOW_AUTOSIZE);
 	cv::imshow("Edges", img_edge);
+	findCorner(chains, 0.8, 4);
+}
+
+void findCorner(std::vector<std::vector<std::pair<cv::Point, int>>> chains, double threshold, int n)
+{
+	cv::Mat img_edge = cv::Mat::zeros(512, 512, CV_8UC1);
+	for (auto chain : chains) {
+		int length = (int)chain.size();
+		for (int i = 1; i < length; i++) {
+			int d1 = std::abs(chain[std::min(i+1, length-1)].second - chain[i].second);
+			if (d1 > 4) d1 = 8 - d1;
+			int k = std::abs(chain[std::min(i+2, length-1)].second - chain[std::max(i-1, 0)].second);
+			if (k > 4) k = 8 - k;
+			int d2 = d1 + k;
+			
+			if (d1 > 2) {
+				std::cout << chain[i].first << "\n"; 
+				*(img_edge.ptr<uchar>(chain[i].first.y, chain[i].first.x)) = 255;
+			}
+			else if (d1 == 1 || d1 == 2) {
+				if (d2 > 3) {
+					std::cout << chain[i].first << "\n";
+					*(img_edge.ptr<uchar>(chain[i].first.y, chain[i].first.x)) = 255;
+				}
+				else if (d2 == 3) {
+					int dify1 = chain[std::min(i+n, length-1)].first.y - chain[i].first.y;
+					int difx1 = chain[std::min(i+n, length-1)].first.x - chain[i].first.x;
+					double alpha1 = std::atan(dify1 / difx1);
+
+					int dify2 = chain[i].first.y - chain[std::max(i-n, 0)].first.y;
+					int difx2 = chain[i].first.x - chain[std::max(i-n, 0)].first.x;
+					double alpha2 = std::atan(dify2 / difx2);
+
+					if (std::abs(alpha1 - alpha2) > threshold) {
+						std::cout << chain[i].first << "\n";
+						*(img_edge.ptr<uchar>(chain[i].first.y, chain[i].first.x)) = 255;
+					}
+				}
+			}
+		}
+	}
+	cv::namedWindow("Corner", CV_WINDOW_AUTOSIZE);
+	cv::imshow("Corner", img_edge);
 }
 
 void drawEdges(cv::Mat& img_edge, std::vector<Edge>& edges)
