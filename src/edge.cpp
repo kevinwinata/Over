@@ -8,8 +8,8 @@ Edge::Edge() {
 	isCurve = true;
 };
 
-void Edge::addPoints(cv::Point p) {
-	points.push_back(p);
+void Edge::addCorner(cv::Point p) {
+	corners.push_back(p);
 	if (max_x < p.x) max_x = p.x;
 	if (min_x > p.x) min_x = p.x;
 	if (max_y < p.y) max_y = p.y;
@@ -21,7 +21,7 @@ void Edge::bezierFit() {
 	cv::Point c1 = cv::Point(0.0, 0.0);
 	cv::Point c2 = cv::Point(0.0, 0.0);
 
-	int n = points.size();
+	int n = corners.size();
 	for (int i = 1; i <= n; i++) {
 		double ti = (double)(i - 1) / (n - 1);
 		double qi = 1 - ti;
@@ -35,8 +35,8 @@ void Edge::bezierFit() {
 		a2 += ti4 * qi2;
 		a12 += ti3 * qi3;
 
-		cv::Point pi = points[i - 1];
-		cv::Point m = pi - qi3 * points.front() - ti3 * points.back();
+		cv::Point pi = corners[i - 1];
+		cv::Point m = pi - qi3 * corners.front() - ti3 * corners.back();
 		c1 += ti * qi2 * m;
 		c2 += ti2 * qi * m;
 	}

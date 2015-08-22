@@ -76,7 +76,7 @@ void separateEdges(std::vector<std::vector<bool>>& contour, std::vector<Edge>& e
 				int prevdir = 0;
 
 				while (!stop) {
-					edge.addPoints(*p);
+					edge.addCorner(*p);
 					contour[p->y][p->x] = false;
 
 					int n;
@@ -109,13 +109,12 @@ void separateEdges(std::vector<std::vector<bool>>& contour, std::vector<Edge>& e
 	}
 }
 
-void contourChainCode(std::vector<std::vector<char>>& contour, std::vector<std::vector<long>>& labels, std::vector<Region>& regions, int rows, int cols)
+void contourChainCode(std::vector<std::vector<char>>& contour, std::vector<std::vector<std::pair<cv::Point, int>>>& chains, std::vector<std::vector<long>>& labels, std::vector<Region>& regions, int rows, int cols)
 {
 	std::array<char, 8> dir_x = { 1, 1, 0, -1, -1, -1, 0, 1 };
 	std::array<char, 8> dir_y = { 0, -1, -1, -1, 0, 1, 1, 1 };
 
 	cv::Mat img_edge = cv::Mat::zeros(rows, cols, CV_8UC3);
-	std::vector<std::vector<std::pair<cv::Point, int>>> chains;
 
 	for (int i = 0; i < rows; i++) {
 		for (int j = 0; j < cols; j++) {
@@ -185,13 +184,16 @@ void contourChainCode(std::vector<std::vector<char>>& contour, std::vector<std::
 	}
 	cv::namedWindow("Edges", CV_WINDOW_AUTOSIZE);
 	cv::imshow("Edges", img_edge);
-	findCorner(chains, 0.8, 4);
 }
 
-void findCorner(std::vector<std::vector<std::pair<cv::Point, int>>> chains, double threshold, int n)
+void findCorner(std::vector<std::vector<std::pair<cv::Point, int>>>& chains, std::vector<Edge>& edges, double threshold, int n)
 {
 	cv::Mat img_edge = cv::Mat::zeros(512, 512, CV_8UC1);
+
 	for (auto chain : chains) {
+		Edge edge;
+		edge.addCorner(cv::Point(chain[0].first.x, chain[0].first.y));
+
 		int length = (int)chain.size();
 		for (int i = 1; i < length; i++) {
 			int d1 = std::abs(chain[std::min(i+1, length-1)].second - chain[i].second);
@@ -202,11 +204,13 @@ void findCorner(std::vector<std::vector<std::pair<cv::Point, int>>> chains, doub
 			
 			if (d1 > 2) {
 				//std::cout << chain[i].first << "\n"; 
+				edge.addCorner(cv::Point(chain[i].first.x, chain[i].first.y));
 				*(img_edge.ptr<uchar>(chain[i].first.y, chain[i].first.x)) = 255;
 			}
 			else if (d1 == 1 || d1 == 2) {
 				if (d2 > 3) {
 					//std::cout << chain[i].first << "\n";
+					edge.addCorner(cv::Point(chain[i].first.x, chain[i].first.y));
 					*(img_edge.ptr<uchar>(chain[i].first.y, chain[i].first.x)) = 255;
 				}
 				else if (d2 == 3) {
@@ -220,11 +224,15 @@ void findCorner(std::vector<std::vector<std::pair<cv::Point, int>>> chains, doub
 
 					if (std::abs(alpha1 - alpha2) > threshold) {
 						//std::cout << chain[i].first << "\n";
+						edge.addCorner(cv::Point(chain[i].first.x, chain[i].first.y));
 						*(img_edge.ptr<uchar>(chain[i].first.y, chain[i].first.x)) = 255;
 					}
 				}
 			}
 		}
+
+		edge.addCorner(cv::Point(chain[length - 1].first.x, chain[length - 1].first.y));
+		edges.push_back(edge);
 	}
 	cv::namedWindow("Corner", CV_WINDOW_AUTOSIZE);
 	cv::imshow("Corner", img_edge);
@@ -234,7 +242,7 @@ void drawEdges(cv::Mat& img_edge, std::vector<Edge>& edges)
 {
 	size_t length = edges.size();
 	for (int i = 0; i < length; i++) {
-		for (cv::Point pos : edges[i].points) {
+		for (cv::Point pos : edges[i].corners) {
 			cv::Point3_<uchar>* p = img_edge.ptr<cv::Point3_<uchar>>(pos.y, pos.x);
 			p->x = (i + 1) * 25 % 255;
 			p->y = (i + 1) * 100 % 255;
@@ -246,14 +254,14 @@ void drawEdges(cv::Mat& img_edge, std::vector<Edge>& edges)
 void drawCurves(cv::Mat& img_curve, std::vector<Edge>& edges)
 {
 	for (Edge edge : edges) {
-		if (edge.isCurve && edge.points.size() > 2) {
+		if (edge.isCurve && edge.corners.size() > 2) {
 			edge.bezierFit();
 
 			cv::Point points[1][5];
-			points[0][0] = edge.points.front();
+			points[0][0] = edge.corners.front();
 			points[0][1] = edge.control1;
 			points[0][2] = edge.control2;
-			points[0][3] = edge.points.back();
+			points[0][3] = edge.corners.back();
 
 			const cv::Point* ppt[1] = { points[0] };
 			int npt[] = { 4 }; 
@@ -262,12 +270,12 @@ void drawCurves(cv::Mat& img_curve, std::vector<Edge>& edges)
 			cv::polylines(img_curve, ppt, npt, 1, false, 255, 1, 8, 0);
 		}
 		else {
-			cv::line(img_curve, edge.points.front(), edge.points.back(), 255, 1, 8, 0);
+			cv::line(img_curve, edge.corners.front(), edge.corners.back(), 255, 1, 8, 0);
 		}
 	}
 }
 
-void writeVector(std::string filename, std::vector<Edge>& edges, int width, int height)
+void writeEdgeVector(std::string filename, std::vector<Edge>& edges, int width, int height)
 {
 	std::ofstream file;
 	file.open(filename);
@@ -283,18 +291,51 @@ void writeVector(std::string filename, std::vector<Edge>& edges, int width, int 
 
 	for (Edge edge : edges) {
 		file << "<path d=\"";
-		file << "M " << edge.points.front().x << " " << edge.points.front().y << " ";
 
-		if (edge.isCurve && edge.points.size() > 2) {
-			file << "C " <<
-				edge.control1.x << " " << edge.control1.y << " " <<
-				edge.control2.x << " " << edge.control2.y << " " <<
-				edge.points.back().x << " " << edge.points.back().y << " ";
-		}
-		else {
-			file << "L " << edge.points.back().x << " " << edge.points.back().y << " ";
+		bool first = true;
+		for (cv::Point corner : edge.corners) {
+			if (first) {
+				file << "M " << corner.x << " " << corner.y << " ";
+				first = false;
+			}
+			file << "L " << corner.x << " " << corner.y << " ";
 		}
 		file << "\" fill=\"none\" stroke=\"#000000\"/>\n";
+	}
+	file << "</svg>";
+	file.close();
+}
+
+void writeVector(std::string filename, std::vector<Region>& regions, std::vector<Edge>& edges, int width, int height)
+{
+	std::ofstream file;
+	file.open(filename);
+
+	file << "<?xml version=\"1.0\" encoding=\"utf-8\"?>\n";
+	file << "<!DOCTYPE svg PUBLIC \" -//W3C//DTD SVG 1.1//EN\" ";
+	file << "\"http://www.w3.org/Graphics/SVG/1.1/DTD/svg11.dtd\">\n";
+
+	file << "<svg version=\"1.1\"  xmlns=\"http://www.w3.org/2000/svg\" ";
+	file << "width=\"" << width << "px\" ";
+	file << "height = \"" << height << "\" ";
+	file << "viewBox=\"0 0 " << width << " " << height << "\" xml:space=\"preserve\">\n";
+
+	for (Region region : regions) {
+		file << "<path d=\"";
+
+		for (int idx : region.edges) {
+			Edge edge = edges[idx];
+			bool first = true;
+			for (cv::Point corner : edge.corners) {
+				if (first) {
+					file << "M " << corner.x << " " << corner.y << " ";
+					first = false;
+				}
+				file << "L " << corner.x << " " << corner.y << " ";
+			}
+		}
+
+		file << "\" fill=\"" << region.getAvgColor() << "\" stroke=\"none\"/>\n";
 	}
 	file << "</svg>";
 	file.close();

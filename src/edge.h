@@ -6,7 +6,7 @@
 class Edge
 {
 public:
-	std::vector<cv::Point> points;
+	std::vector<cv::Point> corners;
 	cv::Point control1;
 	cv::Point control2;
 	bool isCurve;
@@ -17,7 +17,7 @@ public:
 
 	Edge();
 
-	void addPoints(cv::Point p);
+	void addCorner(cv::Point p);
 
 	void bezierFit();
 

@@ -8,11 +8,12 @@
 
 void segmentEdges(std::vector<std::vector<bool>>& contour, std::vector<std::vector<cv::Point>> edgemaps);
 void separateEdges(std::vector<std::vector<bool>>& contour, std::vector<Edge>& edges, std::vector<Region>& regions, std::vector<std::vector<long>>& labels, int rows, int cols);
-void contourChainCode(std::vector<std::vector<char>>& contour, std::vector<std::vector<long>>& labels, std::vector<Region>& regions, int rows, int cols);
-void findCorner(std::vector<std::vector<std::pair<cv::Point, int>>> chains, double threshold, int n);
+void contourChainCode(std::vector<std::vector<char>>& contour, std::vector<std::vector<std::pair<cv::Point, int>>>& chains, std::vector<std::vector<long>>& labels, std::vector<Region>& regions, int rows, int cols);
+void findCorner(std::vector<std::vector<std::pair<cv::Point, int>>>& chains, std::vector<Edge>& edges, double threshold, int n);
 void drawEdges(cv::Mat& img_edge, std::vector<Edge>& edgepoints);
 void drawCurves(cv::Mat& img_curve, std::vector<Edge>& edges);
-void writeVector(std::string filename, std::vector<Edge>& edges, int width, int height);
+void writeEdgeVector(std::string filename, std::vector<Edge>& edges, int width, int height);
+void writeVector(std::string filename, std::vector<Region>& regions, std::vector<Edge>& edges, int width, int height);
 void trace(std::vector<Edge>& edges);
 
 #endif

@@ -65,7 +65,8 @@ void findContour(std::vector<std::vector<long>>& labels, std::vector<std::vector
 	for (int i = 0; i < rows; i++) {
 		for (int j = 0; j < cols; j++) {
 			if ((i > 0 && labels[i - 1][j] != labels[i][j] && contour[i - 1][j] != 1) ||
-				(j > 0 && labels[i][j - 1] != labels[i][j] && contour[i][j - 1] != 1)) {
+				(j > 0 && labels[i][j - 1] != labels[i][j] && contour[i][j - 1] != 1) ||
+				i == 0 || i == rows-1 || j == 0 || j == cols-1) {
 				contour[i][j] = 1;
 			}
 		}

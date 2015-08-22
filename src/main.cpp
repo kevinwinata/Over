@@ -10,7 +10,8 @@
 cv::Mat img;
 int maxDistance = 15;
 std::vector<std::vector<long>> labels;
-std::vector<std::vector<char>> contour;
+std::vector<std::vector<char>> contour; 
+std::vector<std::vector<std::pair<cv::Point, int>>> chains;
 std::vector<Region> regions;
 std::vector<Edge> edges;
 
@@ -66,7 +67,8 @@ int main(int argc, char** argv)
 
 	writeVector("example.svg", edges, img.cols, img.rows);*/
 
-	contourChainCode(contour, labels, regions, img.rows, img.cols);
+	contourChainCode(contour, chains, labels, regions, img.rows, img.cols);
+	findCorner(chains, edges, 0.8, 4);
 	for (int i = 0; i < regions.size(); i++) {
 		std::cout << "region " << i << "\n";
 		for (auto e : regions[i].edges) {
@@ -74,6 +76,7 @@ int main(int argc, char** argv)
 		}
 		std::cout << "\n";
 	}
+	writeVector("example.svg", regions, edges, img.cols, img.rows);
 	
 	cv::waitKey(0); // Wait for a keystroke in the window
 	return 0;
