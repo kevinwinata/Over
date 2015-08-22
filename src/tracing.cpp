@@ -109,7 +109,7 @@ void separateEdges(std::vector<std::vector<bool>>& contour, std::vector<Edge>& e
 	}
 }
 
-void contourChainCode(std::vector<std::vector<char>>& contour, int rows, int cols)
+void contourChainCode(std::vector<std::vector<char>>& contour, std::vector<std::vector<long>>& labels, std::vector<Region>& regions, int rows, int cols)
 {
 	std::array<char, 8> dir_x = { 1, 1, 0, -1, -1, -1, 0, 1 };
 	std::array<char, 8> dir_y = { 0, -1, -1, -1, 0, 1, 1, 1 };
@@ -120,12 +120,13 @@ void contourChainCode(std::vector<std::vector<char>>& contour, int rows, int col
 	for (int i = 0; i < rows; i++) {
 		for (int j = 0; j < cols; j++) {
 			if (contour[i][j] != 0) {
-				//if (contour[i][j] == 2) std::cout << i << " " << j << "\n";
 				std::vector<std::pair<cv::Point, int>> chain;
 				cv::Point* p = &(cv::Point(j, i));
 
 				bool stop = false;
 				int prev_ai = -1;
+				long reg1 = labels[i][j];
+				long reg2 = 0;
 
 				while (!stop) {
 					chain.push_back(std::make_pair(*p, prev_ai));
@@ -134,21 +135,37 @@ void contourChainCode(std::vector<std::vector<char>>& contour, int rows, int col
 
 					int n = 0;
 					bool found = false;
+					bool changereg = false;
 					int x, y;
+
+					regions[labels[p->y][p->x] - 1].addEdge(chains.size());
+					if (p->y > 0)
+						regions[labels[p->y - 1][p->x] - 1].addEdge(chains.size());
+					if (p->x > 0)
+						regions[labels[p->y][p->x - 1] - 1].addEdge(chains.size());
 
 					for (int ai = 0; ai < 8; ai++) {
 						int ypos = p->y + dir_y[ai], xpos = p->x + dir_x[ai];
-						if (legalPoint(ypos, xpos, rows, cols) && contour[ypos][xpos] == 1) {
-							x = xpos, y = ypos;
-							prev_ai = ai;
-							n++;
-							found = true;
+						if (legalPoint(ypos, xpos, rows, cols)) {
+							if (reg2 == 0) {
+								if (labels[ypos][xpos] != reg1) reg2 = labels[ypos][xpos];
+							}
+							else {
+								changereg = labels[p->y][p->x] != reg1 && 
+									labels[p->y][p->x] != reg2;
+							}
+							if (contour[ypos][xpos] == 1) {
+								x = xpos, y = ypos;
+								prev_ai = ai;
+								n++;
+								found = true;
+							}
 						}
 					}
 					if (n > 1) contour[p->y][p->x] = 2;
 					if (found) p = &(cv::Point(x, y));
 
-					stop = !found;
+					stop = !found || changereg;
 				}
 				chains.push_back(chain);
 			}
@@ -159,9 +176,9 @@ void contourChainCode(std::vector<std::vector<char>>& contour, int rows, int col
 	for (int i = 0; i < length; i++) {
 		for (auto pos : chains[i]) {
 			cv::Point3_<uchar>* p = img_edge.ptr<cv::Point3_<uchar>>(pos.first.y, pos.first.x);
-			p->x = (i + 1) * 25 % 255;
-			p->y = (i + 1) * 100 % 255;
-			p->z = (i + 1) * 180 % 255;
+			p->x = (i + 1) * 55 % 255;
+			p->y = (i + 1) * 78 % 255;
+			p->z = (i + 1) * 134 % 255;
 			//std::cout << pos.second;
 		}
 		//std::cout << "\n\n";
@@ -184,12 +201,12 @@ void findCorner(std::vector<std::vector<std::pair<cv::Point, int>>> chains, doub
 			int d2 = d1 + k;
 			
 			if (d1 > 2) {
-				std::cout << chain[i].first << "\n"; 
+				//std::cout << chain[i].first << "\n"; 
 				*(img_edge.ptr<uchar>(chain[i].first.y, chain[i].first.x)) = 255;
 			}
 			else if (d1 == 1 || d1 == 2) {
 				if (d2 > 3) {
-					std::cout << chain[i].first << "\n";
+					//std::cout << chain[i].first << "\n";
 					*(img_edge.ptr<uchar>(chain[i].first.y, chain[i].first.x)) = 255;
 				}
 				else if (d2 == 3) {
@@ -202,7 +219,7 @@ void findCorner(std::vector<std::vector<std::pair<cv::Point, int>>> chains, doub
 					double alpha2 = std::atan(dify2 / difx2);
 
 					if (std::abs(alpha1 - alpha2) > threshold) {
-						std::cout << chain[i].first << "\n";
+						//std::cout << chain[i].first << "\n";
 						*(img_edge.ptr<uchar>(chain[i].first.y, chain[i].first.x)) = 255;
 					}
 				}

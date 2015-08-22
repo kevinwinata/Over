@@ -66,7 +66,14 @@ int main(int argc, char** argv)
 
 	writeVector("example.svg", edges, img.cols, img.rows);*/
 
-	contourChainCode(contour, img.rows, img.cols);
+	contourChainCode(contour, labels, regions, img.rows, img.cols);
+	for (int i = 0; i < regions.size(); i++) {
+		std::cout << "region " << i << "\n";
+		for (auto e : regions[i].edges) {
+			std::cout << e << " ";
+		}
+		std::cout << "\n";
+	}
 	
 	cv::waitKey(0); // Wait for a keystroke in the window
 	return 0;
