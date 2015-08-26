@@ -4,7 +4,7 @@
 #include <opencv2/core/core.hpp>
 #include "region.h"
 
-void colorMapSegmentation(cv::Mat& img, std::vector<std::vector<long>>& labels, std::vector<Region>& props, int maxDistance);
+void colorMapSegmentation(cv::Mat& img, std::vector<std::vector<long>>& labels, std::vector<Region>& regions, int maxDistance);
 
 void findContour(std::vector<std::vector<long>>& labels, std::vector<std::vector<char>>& contour, int rows, int cols);
 

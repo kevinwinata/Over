@@ -22,7 +22,6 @@ void mouseCallback(int event, int x, int y, int flags, void* userdata)
 		Region& region = regions[labels[y][x] - 1];
 		std::cout << "region : " << labels[y][x] << std::endl;
 		region.printProps();
-		std::cout << std::endl;
 	}
 }
 
@@ -76,8 +75,10 @@ int main(int argc, char** argv)
 		}
 		std::cout << "\n";
 	}
+
+	cv::setMouseCallback("Edges", mouseCallback, NULL);
 	writeVector("example.svg", regions, edges, img.cols, img.rows);
-	
+
 	cv::waitKey(0); // Wait for a keystroke in the window
 	return 0;
 }
