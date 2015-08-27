@@ -29,7 +29,10 @@ std::string Region::getAvgColor() {
 	int b = static_cast<int>(std::round(b_sums / n));
 
 	std::stringstream s;
-	s << "#" << std::hex << r << g << b;
+	s << "#" << std::hex 
+		<< ((r < 16) ? "0" : "") << r 
+		<< ((g < 16) ? "0" : "") << g 
+		<< ((b < 16) ? "0" : "") << b;
 	return s.str();
 }
 

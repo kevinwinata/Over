@@ -10,6 +10,8 @@ void segmentEdges(std::vector<std::vector<bool>>& contour, std::vector<std::vect
 void separateEdges(std::vector<std::vector<bool>>& contour, std::vector<Edge>& edges, std::vector<Region>& regions, std::vector<std::vector<long>>& labels, int rows, int cols);
 void contourChainCode(std::vector<std::vector<char>>& contour, std::vector<std::vector<std::pair<cv::Point, int>>>& chains, std::vector<std::vector<long>>& labels, std::vector<Region>& regions, int rows, int cols);
 void findCorner(std::vector<std::vector<std::pair<cv::Point, int>>>& chains, std::vector<Edge>& edges, double threshold, int n);
+void edgeSort(std::vector<Region>& regions, std::vector<Edge>& edges);
+void drawChains(cv::Mat& img_chain, std::vector<std::vector<std::pair<cv::Point, int>>>& chains);
 void drawEdges(cv::Mat& img_edge, std::vector<Edge>& edgepoints);
 void drawCurves(cv::Mat& img_curve, std::vector<Edge>& edges);
 void writeEdgeVector(std::string filename, std::vector<Edge>& edges, int width, int height);

@@ -43,31 +43,41 @@ int main(int argc, char** argv)
 	cv::namedWindow("Source", cv::WINDOW_AUTOSIZE);
 	cv::imshow("Source", img);	
 
+	std::cout << "Segmentating ... \n";
 	colorMapSegmentation(img, labels, regions, maxDistance);
-
 	cv::Mat img_seg(img.rows, img.cols, img.type());
 	drawSegments(img_seg, labels);
-
 	cv::namedWindow("Segmentated", CV_WINDOW_AUTOSIZE);
 	cv::imshow("Segmentated", img_seg);
 
+	std::cout << "\nDetecting contours ... \n";
 	cv::Mat img_contour = cv::Mat::zeros(img.rows, img.cols, CV_8UC1);
 	findContour(labels, contour, img.rows, img.cols);
 	drawContour(img_contour, contour);
 	cv::namedWindow("Contour", CV_WINDOW_AUTOSIZE);
 	cv::imshow("Contour", img_contour);
 
-	/*cv::Mat img_edge = cv::Mat::zeros(img.rows, img.cols, CV_8UC3);
-	separateEdges(contour, edges, regions, labels, img.rows, img.cols);
-	drawEdges(img_edge, edges);
-	cv::namedWindow("Edges", CV_WINDOW_AUTOSIZE);
-	cv::imshow("Edges", img_edge);
-	cv::setMouseCallback("Edges", mouseCallback, NULL);
-
-	writeVector("example.svg", edges, img.cols, img.rows);*/
-
+	std::cout << "\nSeparating edges ... \n";
+	cv::Mat img_chain = cv::Mat::zeros(img.rows, img.cols, CV_8UC3);
 	contourChainCode(contour, chains, labels, regions, img.rows, img.cols);
+	drawChains(img_chain, chains);
+	cv::namedWindow("Chain Code", CV_WINDOW_AUTOSIZE);
+	cv::imshow("Chain Code", img_chain);
+
+	std::cout << "\nDetecting corners ... \n";
 	findCorner(chains, edges, 0.8, 4);
+
+	/*for (int i = 0; i < regions.size(); i++) {
+		std::cout << "region " << i << "\n";
+		for (auto e : regions[i].edges) {
+			std::cout << e << " ";
+		}
+		std::cout << "\n";
+	}*/
+
+	std::cout << "\nSorting edges ... \n";
+	edgeSort(regions, edges);
+
 	for (int i = 0; i < regions.size(); i++) {
 		std::cout << "region " << i << "\n";
 		for (auto e : regions[i].edges) {
@@ -77,8 +87,11 @@ int main(int argc, char** argv)
 	}
 
 	cv::setMouseCallback("Edges", mouseCallback, NULL);
+
+	std::cout << "\nOutputting SVG ... \n";
 	writeVector("example.svg", regions, edges, img.cols, img.rows);
 
+	std::cout << "\nDone.";
 	cv::waitKey(0); // Wait for a keystroke in the window
 	return 0;
 }

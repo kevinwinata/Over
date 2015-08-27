@@ -10,6 +10,7 @@ public:
 	cv::Point control1;
 	cv::Point control2;
 	bool isCurve;
+	bool reverse;
 	int max_x;
 	int min_x;
 	int max_y;

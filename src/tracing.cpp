@@ -114,8 +114,6 @@ void contourChainCode(std::vector<std::vector<char>>& contour, std::vector<std::
 	std::array<char, 8> dir_x = { 1, 1, 0, -1, -1, -1, 0, 1 };
 	std::array<char, 8> dir_y = { 0, -1, -1, -1, 0, 1, 1, 1 };
 
-	cv::Mat img_edge = cv::Mat::zeros(rows, cols, CV_8UC3);
-
 	for (int i = 0; i < rows; i++) {
 		for (int j = 0; j < cols; j++) {
 			if (contour[i][j] != 0) {
@@ -167,20 +165,6 @@ void contourChainCode(std::vector<std::vector<char>>& contour, std::vector<std::
 			}
 		}
 	}
-
-	size_t length = chains.size();
-	for (int i = 0; i < length; i++) {
-		for (auto pos : chains[i]) {
-			cv::Point3_<uchar>* p = img_edge.ptr<cv::Point3_<uchar>>(pos.first.y, pos.first.x);
-			p->x = (i + 1) * 55 % 255;
-			p->y = (i + 1) * 78 % 255;
-			p->z = (i + 1) * 134 % 255;
-			//std::cout << pos.second;
-		}
-		//std::cout << "\n\n";
-	}
-	cv::namedWindow("Edges", CV_WINDOW_AUTOSIZE);
-	cv::imshow("Edges", img_edge);
 }
 
 void findCorner(std::vector<std::vector<std::pair<cv::Point, int>>>& chains, std::vector<Edge>& edges, double threshold, int n)
@@ -191,50 +175,114 @@ void findCorner(std::vector<std::vector<std::pair<cv::Point, int>>>& chains, std
 		Edge edge;
 		edge.addCorner(cv::Point(chain[0].first.x, chain[0].first.y));
 
-		int length = (int)chain.size();
-		for (int i = 1; i < length; i++) {
-			int d1 = std::abs(chain[std::min(i+1, length-1)].second - chain[i].second);
-			d1 = (d1 > 4)? 8 - d1 : d1;
-			int k = std::abs(chain[std::min(i+2, length-1)].second - chain[std::max(i-1, 0)].second);
-			k = (k > 4) ? 8 - k : k;
-			int d2 = d1 + k;
-			
-			if (d1 > 2) {
-				//std::cout << chain[i].first << "\n"; 
-				edge.addCorner(cv::Point(chain[i].first.x, chain[i].first.y));
-				//*(img_edge.ptr<uchar>(chain[i].first.y, chain[i].first.x)) = 255;
-			}
-			else if (d1 == 1 || d1 == 2) {
-				if (d2 > 3) {
-					//std::cout << chain[i].first << "\n";
+		if (chain.size() > 1) {
+			int length = (int)chain.size();
+			for (int i = 1; i < length; i++) {
+				int d1 = std::abs(chain[std::min(i + 1, length - 1)].second - chain[i].second);
+				d1 = (d1 > 4) ? 8 - d1 : d1;
+				int k = std::abs(chain[std::min(i + 2, length - 1)].second - chain[std::max(i - 1, 0)].second);
+				k = (k > 4) ? 8 - k : k;
+				int d2 = d1 + k;
+
+				if (d1 > 2) {
+					//std::cout << chain[i].first << "\n"; 
 					edge.addCorner(cv::Point(chain[i].first.x, chain[i].first.y));
 					//*(img_edge.ptr<uchar>(chain[i].first.y, chain[i].first.x)) = 255;
 				}
-				else if (d2 == 3) {
-					int dify1 = chain[std::min(i+n, length-1)].first.y - chain[i].first.y;
-					int difx1 = chain[std::min(i+n, length-1)].first.x - chain[i].first.x;
-					double dif1 = (difx1 == 0) ? INFINITY : (dify1 / difx1);
-					double alpha1 = std::atan(dif1);
-
-					int dify2 = chain[i].first.y - chain[std::max(i-n, 0)].first.y;
-					int difx2 = chain[i].first.x - chain[std::max(i - n, 0)].first.x;
-					double dif2 = (difx2 == 0) ? INFINITY : (dify2 / difx2);
-					double alpha2 = std::atan(dif2);
-
-					if (std::abs(alpha1 - alpha2) > threshold) {
+				else if (d1 == 1 || d1 == 2) {
+					if (d2 > 3) {
 						//std::cout << chain[i].first << "\n";
 						edge.addCorner(cv::Point(chain[i].first.x, chain[i].first.y));
 						//*(img_edge.ptr<uchar>(chain[i].first.y, chain[i].first.x)) = 255;
 					}
+					else if (d2 == 3) {
+						int dify1 = chain[std::min(i + n, length - 1)].first.y - chain[i].first.y;
+						int difx1 = chain[std::min(i + n, length - 1)].first.x - chain[i].first.x;
+						double dif1 = (difx1 == 0) ? INFINITY : (dify1 / difx1);
+						double alpha1 = std::atan(dif1);
+
+						int dify2 = chain[i].first.y - chain[std::max(i - n, 0)].first.y;
+						int difx2 = chain[i].first.x - chain[std::max(i - n, 0)].first.x;
+						double dif2 = (difx2 == 0) ? INFINITY : (dify2 / difx2);
+						double alpha2 = std::atan(dif2);
+
+						if (std::abs(alpha1 - alpha2) > threshold) {
+							//std::cout << chain[i].first << "\n";
+							edge.addCorner(cv::Point(chain[i].first.x, chain[i].first.y));
+							//*(img_edge.ptr<uchar>(chain[i].first.y, chain[i].first.x)) = 255;
+						}
+					}
 				}
 			}
+			edge.addCorner(cv::Point(chain[length - 1].first.x, chain[length - 1].first.y));
 		}
-
-		edge.addCorner(cv::Point(chain[length - 1].first.x, chain[length - 1].first.y));
 		edges.push_back(edge);
 	}
 	//cv::namedWindow("Corner", CV_WINDOW_AUTOSIZE);
 	//cv::imshow("Corner", img_edge);
+}
+
+void edgeSort(std::vector<Region>& regions, std::vector<Edge>& edges)
+{
+	std::array<char, 8> dir_x = { 1, 1, 0, -1, -1, -1, 0, 1 };
+	std::array<char, 8> dir_y = { 0, -1, -1, -1, 0, 1, 1, 1 };
+
+	for (Region& region : regions) {
+		int size = (int)region.edges.size();
+		for (int i = 0; i < size; i++) {
+			Edge& edge = edges[region.edges[i]];
+			cv::Point p = (edge.reverse) ? edge.corners.front() : edge.corners.back();
+
+			std::array<cv::Point, 9> sq;
+			for (int j = 0; j < 8; j++) sq[j] = cv::Point(p.x + dir_x[j], p.y + dir_y[j]);
+			sq[8] = p;
+
+			int k = 1;
+			bool found = false;
+			bool matchfront, matchback;
+			int idx;
+			while (!found && k < size - 1) {
+				idx = (i + k < size) ? i + k : i + k - size;
+				cv::Point front = edges[region.edges[idx]].corners.front();
+				matchfront = std::find(sq.begin(), sq.end(), front) != sq.end();
+
+				cv::Point back = edges[region.edges[idx]].corners.back();
+				matchback = std::find(sq.begin(), sq.end(), back) != sq.end();
+
+				found = matchfront || matchback;
+				if (!edges[region.edges[idx]].reverse) {
+					edges[region.edges[idx]].reverse = !matchfront && matchback;
+				}
+				//else std::cout << region.edges[idx] << "\n";
+				k++;
+			}
+			if (found) {
+				//int idx = (i + k - 1 < size) ? i + k - 1 : i + k - 1 - size;
+				int next = (i + 1 < size) ? i + 1 : i + 1 - size;
+				int temp = region.edges[idx];
+				region.edges[idx] = region.edges[next];
+				region.edges[next] = temp;
+
+				int c = (!matchfront && matchback) ? edges[temp].corners.size() - 1 : 0;
+				edges[temp].corners[c] = sq[8];
+			}
+		}
+	}
+}
+
+void drawChains(cv::Mat& img_chain, std::vector<std::vector<std::pair<cv::Point, int>>>& chains)
+{
+	size_t length = chains.size();
+	for (int i = 0; i < length; i++) {
+		for (auto pos : chains[i]) {
+			cv::Point3_<uchar>* p = img_chain.ptr<cv::Point3_<uchar>>(pos.first.y, pos.first.x);
+			p->x = (i + 1) * 55 % 255;
+			p->y = (i + 1) * 78 % 255;
+			p->z = (i + 1) * 134 % 255;
+			//std::cout << pos.second;
+		}
+		//std::cout << "\n\n";
+	}
 }
 
 void drawEdges(cv::Mat& img_edge, std::vector<Edge>& edges)
@@ -293,11 +341,8 @@ void writeEdgeVector(std::string filename, std::vector<Edge>& edges, int width, 
 
 		bool first = true;
 		for (cv::Point corner : edge.corners) {
-			if (first) {
-				file << "M " << corner.x << " " << corner.y << " ";
-				first = false;
-			}
-			file << "L " << corner.x << " " << corner.y << " ";
+			file << ((first) ? "M " : "L ") << corner.x << " " << corner.y << " ";
+			first = false;
 		}
 		file << "\" fill=\"none\" stroke=\"#000000\"/>\n";
 	}
@@ -324,14 +369,15 @@ void writeVector(std::string filename, std::vector<Region>& regions, std::vector
 		bool first = true;
 
 		for (int idx : region.edges) {
-			Edge edge = edges[idx];
-			for (cv::Point corner : edge.corners) {
-				if (first) {
-					file << "M " << corner.x << " " << corner.y << " ";
-					first = false;
-				}
-				file << "L " << corner.x << " " << corner.y << " ";
+			Edge& edge = edges[idx];
+			int size = (int)edge.corners.size();
+			for (int i = 0; i < size; i++) {
+				cv::Point& corner = (edge.reverse) ? edge.corners[size-1-i] : edge.corners[i];
+				file << ((first) ? "M " : "L ") << corner.x << " " << corner.y << " ";
+				first = false;
 			}
+			if (edge.reverse) file << " @" ;
+			file << " /" << idx << " ";
 		}
 
 		file << "Z\" fill=\"" << region.getAvgColor() << "\" stroke=\"none\"/>\n";
