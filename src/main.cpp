@@ -78,13 +78,13 @@ int main(int argc, char** argv)
 	std::cout << "\nSorting edges ... \n";
 	edgeSort(regions, edges);
 
-	for (int i = 0; i < regions.size(); i++) {
+	/*for (int i = 0; i < regions.size(); i++) {
 		std::cout << "region " << i << "\n";
 		for (auto e : regions[i].edges) {
 			std::cout << e << " ";
 		}
 		std::cout << "\n";
-	}
+	}*/
 
 	cv::setMouseCallback("Edges", mouseCallback, NULL);
 

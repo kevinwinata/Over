@@ -11,6 +11,7 @@ public:
 	long b_sums;
 	long n;
 	std::vector<int> edges;
+	std::vector<int> reversed;
 
 	Region();
 

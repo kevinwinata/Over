@@ -56,7 +56,7 @@ void colorMapSegmentation(cv::Mat& img, std::vector<std::vector<long>>& labels, 
 		}
 	}
 
-	std::cout << curlab << std::endl;
+	std::cout << "total regions : " << curlab << std::endl;
 }
 
 void findContour(std::vector<std::vector<long>>& labels, std::vector<std::vector<char>>& contour, int rows, int cols)

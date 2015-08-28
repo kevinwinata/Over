@@ -6,7 +6,6 @@ Edge::Edge() {
 	max_y = 0;
 	min_y = INFINITY;
 	isCurve = false;
-	reverse = false;
 };
 
 void Edge::addCorner(cv::Point p) {

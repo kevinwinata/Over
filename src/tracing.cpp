@@ -224,18 +224,19 @@ void findCorner(std::vector<std::vector<std::pair<cv::Point, int>>>& chains, std
 
 void edgeSort(std::vector<Region>& regions, std::vector<Edge>& edges)
 {
-	std::array<char, 8> dir_x = { 1, 1, 0, -1, -1, -1, 0, 1 };
-	std::array<char, 8> dir_y = { 0, -1, -1, -1, 0, 1, 1, 1 };
+	//std::array<char, 8> dir_x = { 1, 1, 0, -1, -1, -1, 0, 1 };
+	//std::array<char, 8> dir_y = { 0, -1, -1, -1, 0, 1, 1, 1 };
 
 	for (Region& region : regions) {
 		int size = (int)region.edges.size();
 		for (int i = 0; i < size; i++) {
 			Edge& edge = edges[region.edges[i]];
-			cv::Point p = (edge.reverse) ? edge.corners.front() : edge.corners.back();
+			bool reverse = std::find(region.reversed.begin(), region.reversed.end(), region.edges[i]) != region.reversed.end();
+			cv::Point p = (reverse) ? edge.corners.front() : edge.corners.back();
 
-			std::array<cv::Point, 9> sq;
+			/*std::array<cv::Point, 9> sq;
 			for (int j = 0; j < 8; j++) sq[j] = cv::Point(p.x + dir_x[j], p.y + dir_y[j]);
-			sq[8] = p;
+			sq[8] = p;*/
 
 			int k = 1;
 			bool found = false;
@@ -244,28 +245,34 @@ void edgeSort(std::vector<Region>& regions, std::vector<Edge>& edges)
 			while (!found && k < size - 1) {
 				idx = (i + k < size) ? i + k : i + k - size;
 				cv::Point front = edges[region.edges[idx]].corners.front();
-				matchfront = std::find(sq.begin(), sq.end(), front) != sq.end();
+				//matchfront = std::find(sq.begin(), sq.end(), front) != sq.end();
+				matchfront = (std::abs(p.x - front.x) < 3 && std::abs(p.y - front.y) < 3);
 
 				cv::Point back = edges[region.edges[idx]].corners.back();
-				matchback = std::find(sq.begin(), sq.end(), back) != sq.end();
+				//matchback = std::find(sq.begin(), sq.end(), back) != sq.end();
+				matchback = (std::abs(p.x - back.x) < 3 && std::abs(p.y - back.y) < 3);
 
 				found = matchfront || matchback;
-				if (!edges[region.edges[idx]].reverse) {
+				if (!matchfront && matchback) region.reversed.push_back(region.edges[idx]);
+				/*if (!edges[region.edges[idx]].reverse) {
 					edges[region.edges[idx]].reverse = !matchfront && matchback;
-				}
+				}*/
 				//else std::cout << region.edges[idx] << "\n";
 				k++;
 			}
+			//std::cout << "edges " << i << " : ";
 			if (found) {
 				//int idx = (i + k - 1 < size) ? i + k - 1 : i + k - 1 - size;
 				int next = (i + 1 < size) ? i + 1 : i + 1 - size;
 				int temp = region.edges[idx];
 				region.edges[idx] = region.edges[next];
 				region.edges[next] = temp;
+				//std::cout << "swapped " << region.edges[idx] << " with " << region.edges[next];
 
 				int c = (!matchfront && matchback) ? edges[temp].corners.size() - 1 : 0;
-				edges[temp].corners[c] = sq[8];
+				edges[temp].corners[c] = p;
 			}
+			//std::cout << "\n";
 		}
 	}
 }
@@ -371,13 +378,14 @@ void writeVector(std::string filename, std::vector<Region>& regions, std::vector
 		for (int idx : region.edges) {
 			Edge& edge = edges[idx];
 			int size = (int)edge.corners.size();
+			bool reverse = std::find(region.reversed.begin(), region.reversed.end(), idx) != region.reversed.end();
 			for (int i = 0; i < size; i++) {
-				cv::Point& corner = (edge.reverse) ? edge.corners[size-1-i] : edge.corners[i];
+				cv::Point& corner = (reverse) ? edge.corners[size-1-i] : edge.corners[i];
 				file << ((first) ? "M " : "L ") << corner.x << " " << corner.y << " ";
 				first = false;
 			}
-			if (edge.reverse) file << " @" ;
-			file << " /" << idx << " ";
+			//if (reverse) file << " '" ;
+			//file << "/" << idx << " ";
 		}
 
 		file << "Z\" fill=\"" << region.getAvgColor() << "\" stroke=\"none\"/>\n";
