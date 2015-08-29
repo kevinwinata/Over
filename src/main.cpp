@@ -65,7 +65,7 @@ int main(int argc, char** argv)
 	cv::imshow("Chain Code", img_chain);
 
 	std::cout << "\nDetecting corners ... \n";
-	findCorner(chains, edges, 0.8, 4);
+	findCorner(chains, edges, 0, 6);
 
 	/*for (int i = 0; i < regions.size(); i++) {
 		std::cout << "region " << i << "\n";
@@ -79,8 +79,16 @@ int main(int argc, char** argv)
 	edgeSort(regions, edges);
 
 	/*for (int i = 0; i < regions.size(); i++) {
-		std::cout << "region " << i << "\n";
+		std::cout << "region " << i << "\nedges : ";
 		for (auto e : regions[i].edges) {
+			std::cout << e << " ";
+		}
+		std::cout << "\nreversed : ";
+		for (auto e : regions[i].reversed) {
+			std::cout << e << " ";
+		}
+		std::cout << "\ndisconnected : ";
+		for (auto e : regions[i].disconnected) {
 			std::cout << e << " ";
 		}
 		std::cout << "\n";

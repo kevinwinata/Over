@@ -224,19 +224,12 @@ void findCorner(std::vector<std::vector<std::pair<cv::Point, int>>>& chains, std
 
 void edgeSort(std::vector<Region>& regions, std::vector<Edge>& edges)
 {
-	//std::array<char, 8> dir_x = { 1, 1, 0, -1, -1, -1, 0, 1 };
-	//std::array<char, 8> dir_y = { 0, -1, -1, -1, 0, 1, 1, 1 };
-
 	for (Region& region : regions) {
 		int size = (int)region.edges.size();
 		for (int i = 0; i < size; i++) {
 			Edge& edge = edges[region.edges[i]];
 			bool reverse = std::find(region.reversed.begin(), region.reversed.end(), region.edges[i]) != region.reversed.end();
 			cv::Point p = (reverse) ? edge.corners.front() : edge.corners.back();
-
-			/*std::array<cv::Point, 9> sq;
-			for (int j = 0; j < 8; j++) sq[j] = cv::Point(p.x + dir_x[j], p.y + dir_y[j]);
-			sq[8] = p;*/
 
 			int k = 1;
 			bool found = false;
@@ -245,18 +238,13 @@ void edgeSort(std::vector<Region>& regions, std::vector<Edge>& edges)
 			while (!found && k < size - 1) {
 				idx = (i + k < size) ? i + k : i + k - size;
 				cv::Point front = edges[region.edges[idx]].corners.front();
-				//matchfront = std::find(sq.begin(), sq.end(), front) != sq.end();
 				matchfront = (std::abs(p.x - front.x) < 3 && std::abs(p.y - front.y) < 3);
 
 				cv::Point back = edges[region.edges[idx]].corners.back();
-				//matchback = std::find(sq.begin(), sq.end(), back) != sq.end();
 				matchback = (std::abs(p.x - back.x) < 3 && std::abs(p.y - back.y) < 3);
 
 				found = matchfront || matchback;
 				if (!matchfront && matchback) region.reversed.push_back(region.edges[idx]);
-				/*if (!edges[region.edges[idx]].reverse) {
-					edges[region.edges[idx]].reverse = !matchfront && matchback;
-				}*/
 				//else std::cout << region.edges[idx] << "\n";
 				k++;
 			}
@@ -269,8 +257,11 @@ void edgeSort(std::vector<Region>& regions, std::vector<Edge>& edges)
 				region.edges[next] = temp;
 				//std::cout << "swapped " << region.edges[idx] << " with " << region.edges[next];
 
-				int c = (!matchfront && matchback) ? edges[temp].corners.size() - 1 : 0;
-				edges[temp].corners[c] = p;
+				//int c = (!matchfront && matchback) ? edges[temp].corners.size() - 1 : 0;
+				//edges[temp].corners[c] = p;
+			}
+			else {
+				region.disconnected.push_back(region.edges[i]);
 			}
 			//std::cout << "\n";
 		}
@@ -374,21 +365,44 @@ void writeVector(std::string filename, std::vector<Region>& regions, std::vector
 	for (Region region : regions) {
 		file << "<path d=\"";
 		bool first = true;
+		bool isHollow = false;
+		cv::Point prev, ref;
+		if (!region.edges.empty()) {
+			prev = edges[region.edges[0]].corners[0];
+			ref = edges[region.edges[0]].corners[0];
+		}
 
 		for (int idx : region.edges) {
 			Edge& edge = edges[idx];
 			int size = (int)edge.corners.size();
 			bool reverse = std::find(region.reversed.begin(), region.reversed.end(), idx) != region.reversed.end();
-			for (int i = 0; i < size; i++) {
-				cv::Point& corner = (reverse) ? edge.corners[size-1-i] : edge.corners[i];
-				file << ((first) ? "M " : "L ") << corner.x << " " << corner.y << " ";
+			bool disconnect = std::find(region.disconnected.begin(), region.disconnected.end(), idx) != region.disconnected.end();
+
+			if (first) {
+				file << "M " << edge.corners[0].x << " " << edge.corners[0].y << " ";
 				first = false;
 			}
+			else {
+				if (disconnect) {
+					file << "L " << ref.x << " " << ref.y << " ";
+					file << "M " << edge.corners[0].x << " " << edge.corners[0].y << " ";
+					ref = edge.corners[0];
+				}
+			}
+
+			for (int i = 1; i < size; i++) {
+				cv::Point& corner = (reverse) ? edge.corners[size-1-i] : edge.corners[i];
+				file << "L " << corner.x << " " << corner.y << " ";
+			}
+			prev = edge.corners[size - 1];
+			isHollow |= disconnect;
 			//if (reverse) file << " '" ;
-			//file << "/" << idx << " ";
+			//file << "/" << idx << " ";fill-rule="evenodd"
 		}
 
-		file << "Z\" fill=\"" << region.getAvgColor() << "\" stroke=\"none\"/>\n";
+		file << "\" fill=\"" << region.getAvgColor() << "\" stroke=\"none\"";
+		if (isHollow) file << " fill-rule=\"evenodd\"";
+		file << "/>\n";
 	}
 	file << "</svg>";
 	file.close();

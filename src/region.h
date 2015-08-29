@@ -12,6 +12,7 @@ public:
 	long n;
 	std::vector<int> edges;
 	std::vector<int> reversed;
+	std::vector<int> disconnected;
 
 	Region();
 
