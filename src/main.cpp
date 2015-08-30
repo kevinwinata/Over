@@ -4,8 +4,10 @@
 #include <array>
 #include "region.h"
 #include "edge.h"
+#include "vectortree.h"
 #include "segmentation.h"
 #include "tracing.h"
+#include "hierarchy.h"
 
 cv::Mat img;
 int maxDistance = 15;
@@ -93,6 +95,8 @@ int main(int argc, char** argv)
 		}
 		std::cout << "\n";
 	}*/
+	VectorTree tree(regions.size());
+	buildTree(tree, regions);
 
 	cv::setMouseCallback("Edges", mouseCallback, NULL);
 

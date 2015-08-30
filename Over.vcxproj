@@ -96,12 +96,11 @@
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <ClCompile>
-      <PrecompiledHeader>
-      </PrecompiledHeader>
       <WarningLevel>Level3</WarningLevel>
       <Optimization>Disabled</Optimization>
       <PreprocessorDefinitions>WIN32;_DEBUG;_CONSOLE;_LIB;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <SDLCheck>true</SDLCheck>
+      <AdditionalIncludeDirectories>%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
@@ -146,18 +145,22 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="src\edge.cpp" />
+    <ClCompile Include="src\hierarchy.cpp" />
     <ClCompile Include="src\main.cpp" />
     <ClCompile Include="src\region.cpp" />
     <ClCompile Include="src\segmentation.cpp" />
     <ClCompile Include="src\tracing.cpp" />
     <ClCompile Include="src\utils.cpp" />
+    <ClCompile Include="src\vectortree.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="src\edge.h" />
+    <ClInclude Include="src\hierarchy.h" />
     <ClInclude Include="src\region.h" />
     <ClInclude Include="src\segmentation.h" />
     <ClInclude Include="src\tracing.h" />
     <ClInclude Include="src\utils.h" />
+    <ClInclude Include="src\vectortree.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

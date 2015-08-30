@@ -33,6 +33,12 @@
     <ClCompile Include="src\edge.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="src\hierarchy.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="src\vectortree.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="src\segmentation.h">
@@ -48,6 +54,12 @@
       <Filter>Source Files</Filter>
     </ClInclude>
     <ClInclude Include="src\edge.h">
+      <Filter>Source Files</Filter>
+    </ClInclude>
+    <ClInclude Include="src\hierarchy.h">
+      <Filter>Source Files</Filter>
+    </ClInclude>
+    <ClInclude Include="src\vectortree.h">
       <Filter>Source Files</Filter>
     </ClInclude>
   </ItemGroup>
