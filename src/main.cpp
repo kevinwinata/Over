@@ -7,7 +7,6 @@
 #include "vectortree.h"
 #include "segmentation.h"
 #include "tracing.h"
-#include "hierarchy.h"
 
 cv::Mat img;
 int maxDistance = 15;
@@ -24,6 +23,13 @@ void mouseCallback(int event, int x, int y, int flags, void* userdata)
 		Region& region = regions[labels[y][x] - 1];
 		std::cout << "region : " << labels[y][x] << std::endl;
 		region.printProps();
+	}
+}
+void posCallback(int event, int x, int y, int flags, void* userdata)
+{
+	if (event == cv::EVENT_LBUTTONDOWN)
+	{
+		std::cout << x << " " << y << std::endl;
 	}
 }
 
@@ -60,14 +66,20 @@ int main(int argc, char** argv)
 	cv::imshow("Contour", img_contour);
 
 	std::cout << "\nSeparating edges ... \n";
-	cv::Mat img_chain = cv::Mat::zeros(img.rows, img.cols, CV_8UC3);
 	contourChainCode(contour, chains, labels, regions, img.rows, img.cols);
 
 	std::cout << "\nDetecting corners ... \n";
 	findCorner(chains, paths, 0, 6);
-	drawEdges(img_chain, chains, paths, img.rows, img.cols);
+
+	cv::Mat img_chain = cv::Mat::zeros(img.rows, img.cols, CV_8UC3);
+	drawChains(img_chain, chains);
 	cv::namedWindow("Chain Code", CV_WINDOW_AUTOSIZE);
 	cv::imshow("Chain Code", img_chain);
+
+	cv::Mat img_edge = cv::Mat::zeros(img.rows, img.cols, CV_8UC3);
+	drawEdges(img_edge, chains, paths);
+	cv::namedWindow("Corners", CV_WINDOW_AUTOSIZE);
+	cv::imshow("Corners", img_edge);
 
 	/*for (int i = 0; i < regions.size(); i++) {
 		std::cout << "region " << i << "\n";
@@ -78,7 +90,7 @@ int main(int argc, char** argv)
 	}*/
 
 	std::cout << "\nSorting edges ... \n";
-	edgeSort(regions, paths);
+	edgeSort(regions, paths, 5);
 
 	/*for (int i = 0; i < regions.size(); i++) {
 		std::cout << "region " << i << "\nedges : ";
@@ -99,6 +111,7 @@ int main(int argc, char** argv)
 	tree.buildTree(regions);
 
 	cv::setMouseCallback("Edges", mouseCallback, NULL);
+	cv::setMouseCallback("Corners", posCallback, NULL);
 
 	std::cout << "\nOutputting SVG ... \n";
 	writeVector("example.svg", regions, paths, img.cols, img.rows);

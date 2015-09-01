@@ -21,7 +21,7 @@ bool VectorTree::addEdge(int from, int to)
 		queue.pop();
 		visited[curnode] = true;
 
-		found = curnode == true;
+		found = (curnode == from);
 		for (int idx : adj[curnode]) {
 			if (!visited[idx]) queue.push(idx);
 		}
@@ -29,7 +29,7 @@ bool VectorTree::addEdge(int from, int to)
 
 	if (!found) {
 		adj[from].push_back(to);
-		//std::cout << "parent : " << from << ", child : " << to << "\n";
+		std::cout << "parent : " << from << ", child : " << to << "\n";
 	}
 	return !found;
 }
@@ -61,7 +61,7 @@ void VectorTree::buildTree(std::vector<Region>& regions)
 
 		if (!found) {
 			backgrounds.push_back(i);
-			//std::cout << "background : " << i << "\n";
+			std::cout << "background : " << i << "\n";
 		}
 	}
 }

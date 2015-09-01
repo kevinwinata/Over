@@ -222,7 +222,7 @@ void findCorner(std::vector<std::vector<std::pair<cv::Point, int>>>& chains, std
 	//cv::imshow("Corner", img_edge);
 }
 
-void edgeSort(std::vector<Region>& regions, std::vector<Path>& paths)
+void edgeSort(std::vector<Region>& regions, std::vector<Path>& paths, int t)
 {
 	for (Region& region : regions) {
 		int size = (int)region.edges.size();
@@ -238,10 +238,10 @@ void edgeSort(std::vector<Region>& regions, std::vector<Path>& paths)
 			while (!found && k < size - 1) {
 				idx = (i + k < size) ? i + k : i + k - size;
 				cv::Point front = paths[region.edges[idx]].corners.front();
-				matchfront = (std::abs(p.x - front.x) < 3 && std::abs(p.y - front.y) < 3);
+				matchfront = (std::abs(p.x - front.x) < t && std::abs(p.y - front.y) < t);
 
 				cv::Point back = paths[region.edges[idx]].corners.back();
-				matchback = (std::abs(p.x - back.x) < 3 && std::abs(p.y - back.y) < 3);
+				matchback = (std::abs(p.x - back.x) < t && std::abs(p.y - back.y) < t);
 
 				found = matchfront || matchback;
 				if (!matchfront && matchback) region.reversed.push_back(region.edges[idx]);
@@ -283,7 +283,7 @@ void drawChains(cv::Mat& img_chain, std::vector<std::vector<std::pair<cv::Point,
 	}
 }
 
-void drawEdges(cv::Mat& img_edge, std::vector<std::vector<std::pair<cv::Point, int>>>& chains, std::vector<Path>& paths, int rows, int cols)
+void drawEdges(cv::Mat& img_edge, std::vector<std::vector<std::pair<cv::Point, int>>>& chains, std::vector<Path>& paths)
 {
 	std::array<char, 9> dir_x = { 1, 1, 0, -1, -1, -1, 0, 1, 0 };
 	std::array<char, 9> dir_y = { 0, -1, -1, -1, 0, 1, 1, 1, 0 };
@@ -294,7 +294,7 @@ void drawEdges(cv::Mat& img_edge, std::vector<std::vector<std::pair<cv::Point, i
 		for (cv::Point pos : paths[i].corners) {
 			for (int j = 0; j < 9; j++) {
 				int posy = pos.y + dir_y[j]; int posx = pos.x + dir_x[j];
-				if (legalPoint(posy, posx, rows, cols)) {
+				if (legalPoint(posy, posx, img_edge.rows, img_edge.cols)) {
 					cv::Point3_<uchar>* p = img_edge.ptr<cv::Point3_<uchar>>(posy, posx);
 					p->x = 255; p->y = 255; p->z = 255;
 				}
@@ -404,7 +404,7 @@ void writeVector(std::string filename, std::vector<Region>& regions, std::vector
 			prev = path.corners[size - 1];
 			isHollow |= disconnect;
 			//if (reverse) file << " '" ;
-			//file << "/" << idx << " ";fill-rule="evenodd"
+			//file << "/" << idx << " ";
 		}
 
 		file << "\" fill=\"" << region.getAvgColor() << "\" stroke=\"none\"";

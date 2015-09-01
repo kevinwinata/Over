@@ -145,7 +145,6 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="src\path.cpp" />
-    <ClCompile Include="src\hierarchy.cpp" />
     <ClCompile Include="src\main.cpp" />
     <ClCompile Include="src\region.cpp" />
     <ClCompile Include="src\segmentation.cpp" />
@@ -155,7 +154,6 @@
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="src\path.h" />
-    <ClInclude Include="src\hierarchy.h" />
     <ClInclude Include="src\region.h" />
     <ClInclude Include="src\segmentation.h" />
     <ClInclude Include="src\tracing.h" />
