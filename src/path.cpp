@@ -1,6 +1,6 @@
-#include "edge.h"
+#include "path.h"
 
-Edge::Edge() {
+Path::Path() {
 	max_x = 0;
 	min_x = INFINITY;
 	max_y = 0;
@@ -8,7 +8,7 @@ Edge::Edge() {
 	isCurve = false;
 };
 
-void Edge::addCorner(cv::Point p) {
+void Path::addCorner(cv::Point p) {
 	corners.push_back(p);
 	if (max_x < p.x) max_x = p.x;
 	if (min_x > p.x) min_x = p.x;
@@ -16,7 +16,7 @@ void Edge::addCorner(cv::Point p) {
 	if (min_y > p.y) min_y = p.y;
 };
 
-void Edge::bezierFit() {
+void Path::bezierFit() {
 	double a1 = 0.0, a2 = 0.0, a12 = 0.0;
 	cv::Point c1 = cv::Point(0.0, 0.0);
 	cv::Point c2 = cv::Point(0.0, 0.0);

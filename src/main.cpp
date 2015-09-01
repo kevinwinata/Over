@@ -3,7 +3,7 @@
 #include <iostream>
 #include <array>
 #include "region.h"
-#include "edge.h"
+#include "path.h"
 #include "vectortree.h"
 #include "segmentation.h"
 #include "tracing.h"
@@ -15,7 +15,7 @@ std::vector<std::vector<long>> labels;
 std::vector<std::vector<char>> contour; 
 std::vector<std::vector<std::pair<cv::Point, int>>> chains;
 std::vector<Region> regions;
-std::vector<Edge> edges;
+std::vector<Path> paths;
 
 void mouseCallback(int event, int x, int y, int flags, void* userdata)
 {
@@ -62,12 +62,12 @@ int main(int argc, char** argv)
 	std::cout << "\nSeparating edges ... \n";
 	cv::Mat img_chain = cv::Mat::zeros(img.rows, img.cols, CV_8UC3);
 	contourChainCode(contour, chains, labels, regions, img.rows, img.cols);
-	drawChains(img_chain, chains);
-	cv::namedWindow("Chain Code", CV_WINDOW_AUTOSIZE);
-	cv::imshow("Chain Code", img_chain);
 
 	std::cout << "\nDetecting corners ... \n";
-	findCorner(chains, edges, 0, 6);
+	findCorner(chains, paths, 0, 6);
+	drawEdges(img_chain, chains, paths, img.rows, img.cols);
+	cv::namedWindow("Chain Code", CV_WINDOW_AUTOSIZE);
+	cv::imshow("Chain Code", img_chain);
 
 	/*for (int i = 0; i < regions.size(); i++) {
 		std::cout << "region " << i << "\n";
@@ -78,7 +78,7 @@ int main(int argc, char** argv)
 	}*/
 
 	std::cout << "\nSorting edges ... \n";
-	edgeSort(regions, edges);
+	edgeSort(regions, paths);
 
 	/*for (int i = 0; i < regions.size(); i++) {
 		std::cout << "region " << i << "\nedges : ";
@@ -96,12 +96,12 @@ int main(int argc, char** argv)
 		std::cout << "\n";
 	}*/
 	VectorTree tree(regions.size());
-	buildTree(tree, regions);
+	tree.buildTree(regions);
 
 	cv::setMouseCallback("Edges", mouseCallback, NULL);
 
 	std::cout << "\nOutputting SVG ... \n";
-	writeVector("example.svg", regions, edges, img.cols, img.rows);
+	writeVector("example.svg", regions, paths, img.cols, img.rows);
 
 	std::cout << "\nDone.";
 	cv::waitKey(0); // Wait for a keystroke in the window
