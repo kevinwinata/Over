@@ -2,6 +2,7 @@
 #define REGION_H
 
 #include <opencv2/core/core.hpp>
+#include "path.h"
 
 class Region
 {
@@ -13,6 +14,7 @@ public:
 	std::vector<int> edges;
 	std::vector<int> reversed;
 	std::vector<int> disconnected;
+	std::vector<cv::Point> deletelist;
 
 	Region();
 
@@ -24,6 +26,8 @@ public:
 	double countDiffToAvg(cv::Point3_<uchar>& pixel);
 
 	void printProps();
+
+	void simplify(Region& child, std::vector<Path>& paths);
 };
 
 #endif

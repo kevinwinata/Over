@@ -36,6 +36,9 @@
     <ClCompile Include="src\path.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="src\output.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="src\segmentation.h">
@@ -54,6 +57,9 @@
       <Filter>Source Files</Filter>
     </ClInclude>
     <ClInclude Include="src\path.h">
+      <Filter>Source Files</Filter>
+    </ClInclude>
+    <ClInclude Include="src\output.h">
       <Filter>Source Files</Filter>
     </ClInclude>
   </ItemGroup>

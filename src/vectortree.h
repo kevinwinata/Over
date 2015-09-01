@@ -13,6 +13,7 @@ public:
 	VectorTree(int n);
 	bool addEdge(int from, int to);
 	void buildTree(std::vector<Region>& regions);
+	void optimize(std::vector<Region>& regions, std::vector<int>& backgrounds, std::vector<Path>& paths);
 };
 
 #endif

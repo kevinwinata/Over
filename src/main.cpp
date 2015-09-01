@@ -7,6 +7,7 @@
 #include "vectortree.h"
 #include "segmentation.h"
 #include "tracing.h"
+#include "output.h"
 
 cv::Mat img;
 int maxDistance = 15;
@@ -109,12 +110,15 @@ int main(int argc, char** argv)
 	}*/
 	VectorTree tree(regions.size());
 	tree.buildTree(regions);
+	std::vector<int> xx; xx.push_back(0);
+	tree.optimize(regions, xx, paths);
 
 	cv::setMouseCallback("Edges", mouseCallback, NULL);
 	cv::setMouseCallback("Corners", posCallback, NULL);
 
 	std::cout << "\nOutputting SVG ... \n";
 	writeVector("example.svg", regions, paths, img.cols, img.rows);
+	writeOptimizedVector("example-optimized.svg", tree, regions, paths, img.cols, img.rows);
 
 	std::cout << "\nDone.";
 	cv::waitKey(0); // Wait for a keystroke in the window

@@ -65,3 +65,22 @@ void VectorTree::buildTree(std::vector<Region>& regions)
 		}
 	}
 }
+
+void VectorTree::optimize(std::vector<Region>& regions, std::vector<int>& backgrounds, std::vector<Path>& paths)
+{
+	std::queue<int> queue;
+	for (int bg : backgrounds) queue.push(bg);
+	std::vector<bool> visited;
+	visited.resize(n, false);
+
+	while (!queue.empty()) {
+		int curnode = queue.front();
+		queue.pop();
+		visited[curnode] = true;
+
+		for (int child : adj[curnode]) {
+			if (!visited[child]) queue.push(child);
+			regions[curnode].simplify(regions[child], paths);
+		}
+	}
+}

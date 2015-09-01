@@ -41,3 +41,8 @@ cv::Point3_<double> xyzToLab(cv::Point3_<double> xyz) {
 double deltaE76(cv::Point3_<double> lab1, cv::Point3_<double> lab2) {
 	return std::sqrt((lab1.x * lab2.x) + (lab1.y * lab2.y) + (lab1.z * lab2.z));
 }
+
+bool isLeft(cv::Point l1, cv::Point l2, cv::Point p)
+{
+	return ((l2.x - l1.x)*(p.y - l1.y) - (l2.y - l1.y)*(p.x - l1.x)) > 0;
+}

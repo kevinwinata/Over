@@ -65,3 +65,52 @@ void Region::printProps() {
 		std::cout << i << " ";
 	}
 }
+
+void Region::simplify(Region& child, std::vector<Path>& paths)
+{
+	std::vector<int> commonedge;
+	for (int e1 : edges) {
+		for (int e2 : child.edges) {
+			if (e1 == e2) commonedge.push_back(e1);
+		}
+	}
+
+	for (int e : commonedge) {
+		int curidx = 0;
+		int lastidx = (int)paths[e].corners.size();
+
+		while (curidx < lastidx) {
+			cv::Point& curpoint = paths[e].corners[curidx];
+			int legalidx = curidx + 2;
+
+			for (int i = curidx + 2; i < lastidx; i++) {
+				cv::Point& targetpoint = paths[e].corners[i];
+
+				bool consistent = true, first = true;
+				bool left;
+				for (int j = 0; j < lastidx; j++) {
+					if (j != curidx && j != i) {
+						if (first) {
+							left = isLeft(curpoint, targetpoint, paths[e].corners[j]);
+							first = false;
+						}
+						else {
+							bool next = isLeft(curpoint, targetpoint, paths[e].corners[j]);
+							consistent = (left == next);
+						}
+					}
+					if (!consistent) break;
+				}
+
+				if (consistent) {
+					legalidx = i;
+				}
+				else {
+					std::cout << "delete " << targetpoint << "\n";
+					deletelist.push_back(targetpoint);
+				}
+			}
+			curidx = legalidx;
+		}
+	}
+}
