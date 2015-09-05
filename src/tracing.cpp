@@ -5,108 +5,6 @@
 #include <iostream>
 #include <opencv2/highgui/highgui.hpp>
 
-void segmentEdges(std::vector<std::vector<bool>>& contour, std::vector<std::vector<cv::Point>>& edgepoints, int rows, int cols)
-{
-	std::array<std::pair<int, int>, 8> dir;
-	dir[0] = std::make_pair(0, 1);
-	dir[1] = std::make_pair(-1, 1);
-	dir[2] = std::make_pair(-1, 0);
-	dir[3] = std::make_pair(-1, -1);
-	dir[4] = std::make_pair(0, -1);
-	dir[5] = std::make_pair(1, -1);
-	dir[6] = std::make_pair(1, 0);
-	dir[7] = std::make_pair(1, 1);
-
-	for (int i = 0; i < rows; i++) {
-		for (int j = 0; j < cols; j++) {
-			if (contour[i][j]) {
-				std::vector<cv::Point> edgepoint;
-				cv::Point* p = &(cv::Point(j, i));
-
-				while (p != NULL) {
-					edgepoint.push_back(*p);
-					contour[p->y][p->x] = false;
-
-					int n;
-					bool found = false;
-					for (n = 0; n < dir.size(); n++) {
-						int ypos = p->y + dir[n].first;
-						int xpos = p->x + dir[n].second;
-						if (legalPoint(ypos,xpos,rows,cols) && contour[ypos][xpos]) {
-							p = &(cv::Point(xpos, ypos));
-							found = true;
-							break;
-						}
-					}
-
-					if (found && (n - 1) % 2 == 0) {
-						if (legalPoint(i + dir[n].first, j, rows, cols)) {
-							contour[i + dir[n].first][j] = false;
-						}
-						if (legalPoint(i, j + dir[n].second, rows, cols)) {
-							contour[i][j + dir[n].second] = false;
-						}
-					}
-
-					if (!found) p = NULL;
-				}
-
-				edgepoints.push_back(edgepoint);
-			}
-		}
-	}
-
-	std::cout << "total edges : " << edgepoints.size() << "\n";
-}
-
-void separateEdges(std::vector<std::vector<bool>>& contour, std::vector<Path>& paths, std::vector<Region>& regions, std::vector<std::vector<long>>& labels, int rows, int cols)
-{
-	std::array<int, 8> dir_x = { 1, 1, 0, -1, -1, -1, 0, 1 };
-	std::array<int, 8> dir_y = { 0, -1, -1, -1, 0, 1, 1, 1 };
-
-	for (int i = 0; i < rows; i++) {
-		for (int j = 0; j < cols; j++) {
-			if (contour[i][j]) {
-				Path path;
-				cv::Point* p = &(cv::Point(j, i));
-
-				bool stop = false;
-				int prevdir = 0;
-
-				while (!stop) {
-					path.addCorner(*p);
-					contour[p->y][p->x] = false;
-
-					int n;
-					bool found = false;
-
-					regions[labels[p->y][p->x] - 1].addEdge(paths.size());
-					if (p->y > 0)
-						regions[labels[p->y - 1][p->x] - 1].addEdge(paths.size());
-					if (p->x > 0)
-						regions[labels[p->y][p->x - 1] - 1].addEdge(paths.size());
-
-					for (n = 7; n >= 0; n--) {
-						int ypos = p->y + dir_y[n], xpos = p->x + dir_x[n];
-						if (legalPoint(ypos, xpos, rows, cols) && contour[ypos][xpos]) {
-							p = &(cv::Point(xpos, ypos));
-							found = true;
-							break;
-						}
-					}
-
-					if (!found || (std::abs(dir_x[n] - dir_x[prevdir]) + std::abs(dir_y[n] - dir_y[prevdir]) > 2) ) {
-						stop = true;
-					}
-					prevdir = n;
-				}
-				//edge.bezierFit();
-				paths.push_back(path);
-			}
-		}
-	}
-}
-
 void contourChainCode(std::vector<std::vector<char>>& contour, std::vector<std::vector<std::pair<cv::Point, int>>>& chains, std::vector<std::vector<long>>& labels, std::vector<Region>& regions, int rows, int cols)
 {
 	std::array<char, 8> dir_x = { 1, 1, 0, -1, -1, -1, 0, 1 };
@@ -255,8 +153,8 @@ void edgeSort(std::vector<Region>& regions, std::vector<Path>& paths, int t)
 				region.edges[next] = temp;
 				//std::cout << "swapped " << region.edges[idx] << " with " << region.edges[next];
 
-				//int c = (!matchfront && matchback) ? edges[temp].corners.size() - 1 : 0;
-				//edges[temp].corners[c] = p;
+				//int c = (!matchfront && matchback) ? paths[temp].corners.size() - 1 : 0;
+				//paths[temp].corners[c] = p;
 			}
 			else {
 				region.disconnected.push_back(region.edges[i]);

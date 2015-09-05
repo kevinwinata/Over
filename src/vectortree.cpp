@@ -34,9 +34,8 @@ bool VectorTree::addEdge(int from, int to)
 	return !found;
 }
 
-void VectorTree::buildTree(std::vector<Region>& regions)
+void VectorTree::buildTree(std::vector<Region>& regions, std::vector<int>& backgrounds)
 {
-	std::vector<int> backgrounds;
 	backgrounds.push_back(0);
 
 	int size = (int)regions.size();

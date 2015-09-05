@@ -1,6 +1,7 @@
 #include "output.h"
 #include "utils.h"
 #include <opencv2/imgproc.hpp>
+#include <queue>
 #include <iostream>
 #include <fstream>
 
@@ -151,7 +152,7 @@ void writeVector(std::string filename, std::vector<Region>& regions, std::vector
 	file.close();
 }
 
-void writeOptimizedVector(std::string filename, VectorTree& vectortree, std::vector<Region>& regions, std::vector<Path>& paths, int width, int height)
+void writeOptimizedVector(std::string filename, VectorTree& tree, std::vector<int>& backgrounds, std::vector<Region>& regions, std::vector<Path>& paths, int width, int height)
 {
 	std::ofstream file;
 	file.open(filename);
@@ -165,50 +166,72 @@ void writeOptimizedVector(std::string filename, VectorTree& vectortree, std::vec
 	file << "height = \"" << height << "\" ";
 	file << "viewBox=\"0 0 " << width << " " << height << "\" xml:space=\"preserve\">\n";
 
-	for (Region region : regions) {
-		file << "<path d=\"";
-		bool first = true;
-		bool isHollow = false;
-		cv::Point prev, ref;
-		if (!region.edges.empty()) {
-			prev = paths[region.edges[0]].corners[0];
-			ref = paths[region.edges[0]].corners[0];
-		}
+	std::queue<int> queue;
+	for (int bg : backgrounds) queue.push(bg);
+	std::vector<bool> visited;
+	visited.resize(tree.n, false);
 
-		for (int idx : region.edges) {
-			Path& path = paths[idx];
-			int size = (int)path.corners.size();
-			bool reverse = std::find(region.reversed.begin(), region.reversed.end(), idx) != region.reversed.end();
-			bool disconnect = std::find(region.disconnected.begin(), region.disconnected.end(), idx) != region.disconnected.end();
+	while (!queue.empty()) {
+		int curnode = queue.front();
+		queue.pop();
+		if (!visited[curnode]) {
+			visited[curnode] = true;
 
-			if (first) {
-				file << "M " << path.corners[0].x << " " << path.corners[0].y << " ";
-				first = false;
+			Region& region = regions[curnode];
+			//
+			file << "<path d=\"";
+			bool first = true;
+			bool isHollow = false;
+			cv::Point prev, ref;
+			if (!region.edges.empty()) {
+				prev = paths[region.edges[0]].corners[0];
+				ref = paths[region.edges[0]].corners[0];
 			}
-			else {
-				if (disconnect) {
-					file << "L " << ref.x << " " << ref.y << " ";
+
+			for (int idx : region.edges) {
+				Path& path = paths[idx];
+				int size = (int)path.corners.size();
+				bool reverse = std::find(region.reversed.begin(), region.reversed.end(), idx) != region.reversed.end();
+				bool disconnect = std::find(region.disconnected.begin(), region.disconnected.end(), idx) != region.disconnected.end();
+
+				if (first) {
 					file << "M " << path.corners[0].x << " " << path.corners[0].y << " ";
-					ref = path.corners[0];
+					first = false;
 				}
+				else {
+					if (disconnect) {
+						file << "L " << ref.x << " " << ref.y << " ";
+						file << "M " << path.corners[0].x << " " << path.corners[0].y << " ";
+						ref = path.corners[0];
+					}
+				}
+
+				for (int i = 1; i < size; i++) {
+					cv::Point& corner = (reverse) ? path.corners[size - 1 - i] : path.corners[i];
+					if (std::find(region.deletelist.begin(), region.deletelist.end(), corner) == region.deletelist.end()) {
+						file << "L " << corner.x << " " << corner.y << " ";
+					}
+				}
+				prev = path.corners[size - 1];
+				isHollow |= disconnect;
+				//if (reverse) file << " '" ;
+				//file << "/" << idx << " ";
 			}
 
-			for (int i = 1; i < size; i++) {
-				cv::Point& corner = (reverse) ? path.corners[size - 1 - i] : path.corners[i];
-				if (std::find(region.deletelist.begin(), region.deletelist.end(), corner) == region.deletelist.end()) {
-					file << "L " << corner.x << " " << corner.y << " ";
-				}
-			}
-			prev = path.corners[size - 1];
-			isHollow |= disconnect;
-			//if (reverse) file << " '" ;
-			//file << "/" << idx << " ";
+			file << "\" fill=\"" << region.getAvgColor() << "\" stroke=\"none\"";
+			if (isHollow) file << " fill-rule=\"evenodd\"";
+			file << "/>\n";
+			//}
 		}
-
-		file << "\" fill=\"" << region.getAvgColor() << "\" stroke=\"none\"";
-		if (isHollow) file << " fill-rule=\"evenodd\"";
-		file << "/>\n";
+		for (int child : tree.adj[curnode]) {
+			if (!visited[child]) queue.push(child);
+		}
 	}
+
+	//for (Region region : regions) {
+		
+	//}
+
 	file << "</svg>";
 	file.close();
 }
