@@ -74,7 +74,7 @@ void findCorner(std::vector<std::vector<std::pair<cv::Point, int>>>& chains, std
 		if (chain.size() > 1) {
 			int length = (int)chain.size();
 			for (int i = 1; i < length; i++) {
-				int d1 = std::abs(chain[std::min(i + 1, length - 1)].second - chain[i].second);
+				/*int d1 = std::abs(chain[std::min(i + 1, length - 1)].second - chain[i].second);
 				d1 = (d1 > 4) ? 8 - d1 : d1;
 				int k = std::abs(chain[std::min(i + 2, length - 1)].second - chain[std::max(i - 1, 0)].second);
 				k = (k > 4) ? 8 - k : k;
@@ -108,6 +108,9 @@ void findCorner(std::vector<std::vector<std::pair<cv::Point, int>>>& chains, std
 							//*(img_edge.ptr<uchar>(chain[i].first.y, chain[i].first.x)) = 255;
 						}
 					}
+				}*/
+				if (std::abs(chain[std::min(i + 1, length - 1)].second != chain[i].second)) {
+					path.addCorner(cv::Point(chain[i].first.x, chain[i].first.y));
 				}
 			}
 			path.addCorner(cv::Point(chain[length - 1].first.x, chain[length - 1].first.y));

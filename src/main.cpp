@@ -111,7 +111,7 @@ int main(int argc, char** argv)
 	VectorTree tree(regions.size());
 	std::vector<int> backgrounds;
 	tree.buildTree(regions, backgrounds);
-	tree.optimize(regions, backgrounds, paths);
+	tree.optimize(regions, backgrounds, paths, labels);
 
 	cv::setMouseCallback("Edges", mouseCallback, NULL);
 	cv::setMouseCallback("Corners", posCallback, NULL);

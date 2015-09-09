@@ -104,6 +104,7 @@ void Region::simplify(Region& child, std::vector<Path>& paths)
 
 				if (consistent) {
 					legalidx = i;
+					std::cout << "legal " << targetpoint << "\n";
 				}
 				else {
 					std::cout << "delete " << targetpoint << "\n";

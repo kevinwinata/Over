@@ -1,4 +1,5 @@
 #include "vectortree.h"
+#include "utils.h"
 #include <queue>
 #include <iostream>
 
@@ -65,7 +66,7 @@ void VectorTree::buildTree(std::vector<Region>& regions, std::vector<int>& backg
 	}
 }
 
-void VectorTree::optimize(std::vector<Region>& regions, std::vector<int>& backgrounds, std::vector<Path>& paths)
+void VectorTree::optimize(std::vector<Region>& regions, std::vector<int>& backgrounds, std::vector<Path>& paths, std::vector<std::vector<long>>& labels)
 {
 	std::queue<int> queue;
 	for (int bg : backgrounds) queue.push(bg);
@@ -79,7 +80,9 @@ void VectorTree::optimize(std::vector<Region>& regions, std::vector<int>& backgr
 
 		for (int child : adj[curnode]) {
 			if (!visited[child]) queue.push(child);
-			regions[curnode].simplify(regions[child], paths);
+			//std::cout << "simplifying region " << curnode << " from " << child << "\n";
+			//regions[curnode].simplify(regions[child], paths);
+			simplify(regions, curnode, child, paths, labels);
 		}
 	}
 }
