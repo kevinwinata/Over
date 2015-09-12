@@ -91,7 +91,7 @@ int main(int argc, char** argv)
 	}*/
 
 	std::cout << "\nSorting edges ... \n";
-	edgeSort(regions, paths, 5);
+	edgeSort(regions, paths, 10);
 
 	/*for (int i = 0; i < regions.size(); i++) {
 		std::cout << "region " << i << "\nedges : ";
@@ -108,6 +108,9 @@ int main(int argc, char** argv)
 		}
 		std::cout << "\n";
 	}*/
+
+
+	std::cout << "\nOptimizations ... \n";
 	VectorTree tree(regions.size());
 	std::vector<int> backgrounds;
 	tree.buildTree(regions, backgrounds);

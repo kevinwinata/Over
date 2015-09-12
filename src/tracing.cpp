@@ -74,7 +74,7 @@ void findCorner(std::vector<std::vector<std::pair<cv::Point, int>>>& chains, std
 		if (chain.size() > 1) {
 			int length = (int)chain.size();
 			for (int i = 1; i < length; i++) {
-				/*int d1 = std::abs(chain[std::min(i + 1, length - 1)].second - chain[i].second);
+				int d1 = std::abs(chain[std::min(i + 1, length - 1)].second - chain[i].second);
 				d1 = (d1 > 4) ? 8 - d1 : d1;
 				int k = std::abs(chain[std::min(i + 2, length - 1)].second - chain[std::max(i - 1, 0)].second);
 				k = (k > 4) ? 8 - k : k;
@@ -108,10 +108,10 @@ void findCorner(std::vector<std::vector<std::pair<cv::Point, int>>>& chains, std
 							//*(img_edge.ptr<uchar>(chain[i].first.y, chain[i].first.x)) = 255;
 						}
 					}
-				}*/
-				if (std::abs(chain[std::min(i + 1, length - 1)].second != chain[i].second)) {
-					path.addCorner(cv::Point(chain[i].first.x, chain[i].first.y));
 				}
+				/*if (std::abs(chain[std::min(i + 1, length - 1)].second != chain[i].second)) {
+					path.addCorner(cv::Point(chain[i].first.x, chain[i].first.y));
+				}*/
 			}
 			path.addCorner(cv::Point(chain[length - 1].first.x, chain[length - 1].first.y));
 		}
@@ -125,36 +125,42 @@ void edgeSort(std::vector<Region>& regions, std::vector<Path>& paths, int t)
 {
 	for (Region& region : regions) {
 		int size = (int)region.edges.size();
-		for (int i = 0; i < size; i++) {
+
+		for (int i = 0; i < size - 1; i++) {
 			Path& path = paths[region.edges[i]];
 			bool reverse = std::find(region.reversed.begin(), region.reversed.end(), region.edges[i]) != region.reversed.end();
 			cv::Point p = (reverse) ? path.corners.front() : path.corners.back();
 
-			int k = 1;
-			bool found = false;
-			bool matchfront, matchback;
-			int idx;
-			while (!found && k < size - 1) {
-				idx = (i + k < size) ? i + k : i + k - size;
+			int minidx = i;
+			int mindist = 65536;
+			bool front = true;
+
+			for (int idx = i + 1; idx < size; idx++) {
 				cv::Point front = paths[region.edges[idx]].corners.front();
-				matchfront = (std::abs(p.x - front.x) < t && std::abs(p.y - front.y) < t);
+				int dist = std::abs(p.x - front.x) + std::abs(p.y - front.y);
 
-				cv::Point back = paths[region.edges[idx]].corners.back();
-				matchback = (std::abs(p.x - back.x) < t && std::abs(p.y - back.y) < t);
-
-				found = matchfront || matchback;
-				if (!matchfront && matchback) region.reversed.push_back(region.edges[idx]);
-				//else std::cout << region.edges[idx] << "\n";
-				k++;
+				if (mindist > dist) {
+					mindist = dist;
+					minidx = idx;
+				}
 			}
-			//std::cout << "edges " << i << " : ";
-			if (found) {
-				//int idx = (i + k - 1 < size) ? i + k - 1 : i + k - 1 - size;
-				int next = (i + 1 < size) ? i + 1 : i + 1 - size;
-				int temp = region.edges[idx];
-				region.edges[idx] = region.edges[next];
-				region.edges[next] = temp;
-				//std::cout << "swapped " << region.edges[idx] << " with " << region.edges[next];
+
+			for (int idx = i + 1; idx < size; idx++) {
+				cv::Point back = paths[region.edges[idx]].corners.back();
+				int dist = std::abs(p.x - back.x) + std::abs(p.y - back.y);
+
+				if (mindist > dist) {
+					front = false;
+					mindist = dist;
+					minidx = idx;
+				}
+			}
+
+			if (mindist < t) {
+				if (!front) region.reversed.push_back(region.edges[minidx]);
+				int temp = region.edges[minidx];
+				region.edges[minidx] = region.edges[i+1];
+				region.edges[i+1] = temp;
 
 				//int c = (!matchfront && matchback) ? paths[temp].corners.size() - 1 : 0;
 				//paths[temp].corners[c] = p;
@@ -162,7 +168,6 @@ void edgeSort(std::vector<Region>& regions, std::vector<Path>& paths, int t)
 			else {
 				region.disconnected.push_back(region.edges[i]);
 			}
-			//std::cout << "\n";
 		}
 	}
 }
