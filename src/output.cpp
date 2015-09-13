@@ -5,6 +5,29 @@
 #include <iostream>
 #include <fstream>
 
+void drawSegments(cv::Mat& img_seg, std::vector<std::vector<long>>& labels)
+{
+	for (int i = 0; i < img_seg.rows; i++) {
+		for (int j = 0; j < img_seg.cols; j++) {
+			cv::Point3_<uchar>* p = img_seg.ptr<cv::Point3_<uchar>>(i, j);
+			p->x = labels[i][j] * 25 % 255;
+			p->y = labels[i][j] * 100 % 255;
+			p->z = labels[i][j] * 180 % 255;
+		}
+	}
+}
+
+void drawContour(cv::Mat& img_contour, std::vector<std::vector<char>>& contour)
+{
+	for (int i = 0; i < img_contour.rows; i++) {
+		for (int j = 0; j < img_contour.cols; j++) {
+			if (contour[i][j] == 1) {
+				*(img_contour.ptr<uchar>(i, j)) = 255;
+			}
+		}
+	}
+}
+
 void drawChains(cv::Mat& img_chain, std::vector<std::vector<std::pair<cv::Point, int>>>& chains)
 {
 	size_t length = chains.size();

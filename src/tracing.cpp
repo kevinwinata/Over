@@ -5,6 +5,21 @@
 #include <iostream>
 #include <opencv2/highgui/highgui.hpp>
 
+
+void findContour(std::vector<std::vector<long>>& labels, std::vector<std::vector<char>>& contour, int rows, int cols)
+{
+	contour.resize(rows, std::vector<char>(cols, 0));
+	for (int i = 0; i < rows; i++) {
+		for (int j = 0; j < cols; j++) {
+			if ((i > 0 && labels[i - 1][j] != labels[i][j] && contour[i - 1][j] != 1) ||
+				(j > 0 && labels[i][j - 1] != labels[i][j] && contour[i][j - 1] != 1) ||
+				i == 0 || i == rows - 1 || j == 0 || j == cols - 1) {
+				contour[i][j] = 1;
+			}
+		}
+	}
+}
+
 void contourChainCode(std::vector<std::vector<char>>& contour, std::vector<std::vector<std::pair<cv::Point, int>>>& chains, std::vector<std::vector<long>>& labels, std::vector<Region>& regions, int rows, int cols)
 {
 	std::array<char, 8> dir_x = { 1, 1, 0, -1, -1, -1, 0, 1 };
@@ -65,8 +80,6 @@ void contourChainCode(std::vector<std::vector<char>>& contour, std::vector<std::
 
 void findCorner(std::vector<std::vector<std::pair<cv::Point, int>>>& chains, std::vector<Path>& paths, double threshold, int n)
 {
-	//cv::Mat img_edge = cv::Mat::zeros(512, 512, CV_8UC1);
-
 	for (auto chain : chains) {
 		Path path;
 		path.addCorner(cv::Point(chain[0].first.x, chain[0].first.y));
@@ -80,18 +93,16 @@ void findCorner(std::vector<std::vector<std::pair<cv::Point, int>>>& chains, std
 				k = (k > 4) ? 8 - k : k;
 				int d2 = d1 + k;
 
-				if (d1 > 2) {
+				if (d1 > 1) {
 					//std::cout << chain[i].first << "\n"; 
 					path.addCorner(cv::Point(chain[i].first.x, chain[i].first.y));
-					//*(img_edge.ptr<uchar>(chain[i].first.y, chain[i].first.x)) = 255;
 				}
 				else if (d1 == 1 || d1 == 2) {
-					if (d2 > 3) {
+					if (d2 > 2) {
 						//std::cout << chain[i].first << "\n";
 						path.addCorner(cv::Point(chain[i].first.x, chain[i].first.y));
-						//*(img_edge.ptr<uchar>(chain[i].first.y, chain[i].first.x)) = 255;
 					}
-					else if (d2 == 3) {
+					else if (d2 == 2) {
 						int dify1 = chain[std::min(i + n, length - 1)].first.y - chain[i].first.y;
 						int difx1 = chain[std::min(i + n, length - 1)].first.x - chain[i].first.x;
 						double dif1 = (difx1 == 0) ? INFINITY : (dify1 / difx1);
@@ -105,7 +116,6 @@ void findCorner(std::vector<std::vector<std::pair<cv::Point, int>>>& chains, std
 						if (std::abs(alpha1 - alpha2) > threshold) {
 							//std::cout << chain[i].first << "\n";
 							path.addCorner(cv::Point(chain[i].first.x, chain[i].first.y));
-							//*(img_edge.ptr<uchar>(chain[i].first.y, chain[i].first.x)) = 255;
 						}
 					}
 				}
@@ -117,12 +127,18 @@ void findCorner(std::vector<std::vector<std::pair<cv::Point, int>>>& chains, std
 		}
 		paths.push_back(path);
 	}
-	//cv::namedWindow("Corner", CV_WINDOW_AUTOSIZE);
-	//cv::imshow("Corner", img_edge);
 }
 
 void edgeSort(std::vector<Region>& regions, std::vector<Path>& paths, int t)
 {
+	/*for (int i = 0; i < regions.size(); i++) {
+		std::cout << "region " << i << "\n";
+		for (auto e : regions[i].edges) {
+			std::cout << e << " ";
+		}
+		std::cout << "\n";
+	}*/
+
 	for (Region& region : regions) {
 		int size = (int)region.edges.size();
 
@@ -170,4 +186,20 @@ void edgeSort(std::vector<Region>& regions, std::vector<Path>& paths, int t)
 			}
 		}
 	}
+
+	/*for (int i = 0; i < regions.size(); i++) {
+		std::cout << "region " << i << "\nedges : ";
+		for (auto e : regions[i].edges) {
+			std::cout << e << " ";
+		}
+		std::cout << "\nreversed : ";
+		for (auto e : regions[i].reversed) {
+			std::cout << e << " ";
+		}
+		std::cout << "\ndisconnected : ";
+		for (auto e : regions[i].disconnected) {
+			std::cout << e << " ";
+		}
+		std::cout << "\n";
+	}*/
 }

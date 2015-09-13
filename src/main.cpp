@@ -70,7 +70,7 @@ int main(int argc, char** argv)
 	contourChainCode(contour, chains, labels, regions, img.rows, img.cols);
 
 	std::cout << "\nDetecting corners ... \n";
-	findCorner(chains, paths, 0, 6);
+	findCorner(chains, paths, 0.2, 2);
 
 	cv::Mat img_chain = cv::Mat::zeros(img.rows, img.cols, CV_8UC3);
 	drawChains(img_chain, chains);
@@ -82,33 +82,8 @@ int main(int argc, char** argv)
 	cv::namedWindow("Corners", CV_WINDOW_AUTOSIZE);
 	cv::imshow("Corners", img_edge);
 
-	/*for (int i = 0; i < regions.size(); i++) {
-		std::cout << "region " << i << "\n";
-		for (auto e : regions[i].edges) {
-			std::cout << e << " ";
-		}
-		std::cout << "\n";
-	}*/
-
 	std::cout << "\nSorting edges ... \n";
 	edgeSort(regions, paths, 10);
-
-	/*for (int i = 0; i < regions.size(); i++) {
-		std::cout << "region " << i << "\nedges : ";
-		for (auto e : regions[i].edges) {
-			std::cout << e << " ";
-		}
-		std::cout << "\nreversed : ";
-		for (auto e : regions[i].reversed) {
-			std::cout << e << " ";
-		}
-		std::cout << "\ndisconnected : ";
-		for (auto e : regions[i].disconnected) {
-			std::cout << e << " ";
-		}
-		std::cout << "\n";
-	}*/
-
 
 	std::cout << "\nOptimizations ... \n";
 	VectorTree tree(regions.size());
