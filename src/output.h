@@ -14,6 +14,6 @@ void drawEdges(cv::Mat& img_edge, std::vector<std::vector<std::pair<cv::Point, i
 void drawCurves(cv::Mat& img_curve, std::vector<Path>& paths);
 void writeEdgeVector(std::string filename, std::vector<Path>& paths, int width, int height);
 void writeVector(std::string filename, std::vector<Region>& regions, std::vector<Path>& paths, int width, int height);
-void writeOptimizedVector(std::string filename, VectorTree& vectortree, std::vector<int>& backgrounds, std::vector<Region>& regions, std::vector<Path>& paths, int width, int height);
+void writeOptimizedVector(std::string filename, std::list<int>& sortedregions, std::vector<Region>& regions, std::vector<Path>& paths, int width, int height);
 
 #endif

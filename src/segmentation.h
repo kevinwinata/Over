@@ -5,5 +5,6 @@
 #include "region.h"
 
 void colorMapSegmentation(cv::Mat& img, std::vector<std::vector<long>>& labels, std::vector<Region>& regions, int maxDistance);
+void cleanNoise(std::vector<std::vector<long>>& labels, std::vector<Region>& regions, int rows, int cols, int minSize);
 
 #endif

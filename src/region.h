@@ -11,6 +11,7 @@ public:
 	long g_sums;
 	long b_sums;
 	long n;
+	bool relevant;
 	std::vector<int> edges;
 	std::vector<int> reversed;
 	std::vector<int> disconnected;

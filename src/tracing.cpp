@@ -20,7 +20,7 @@ void findContour(std::vector<std::vector<long>>& labels, std::vector<std::vector
 	}
 }
 
-void contourChainCode(std::vector<std::vector<char>>& contour, std::vector<std::vector<std::pair<cv::Point, int>>>& chains, std::vector<std::vector<long>>& labels, std::vector<Region>& regions, int rows, int cols)
+void contourChainCode(std::vector<std::vector<char>>& contour, std::vector<std::vector<std::pair<cv::Point, int>>>& chains, std::vector<std::vector<long>>& labels, std::vector<Region>& regions, VectorTree& tree, int rows, int cols)
 {
 	std::array<char, 8> dir_x = { 1, 1, 0, -1, -1, -1, 0, 1 };
 	std::array<char, 8> dir_y = { 0, -1, -1, -1, 0, 1, 1, 1 };
@@ -71,7 +71,10 @@ void contourChainCode(std::vector<std::vector<char>>& contour, std::vector<std::
 				}
 
 				regions[reg1 - 1].addEdge(chains.size());
-				if (reg2 > 0) regions[reg2 - 1].addEdge(chains.size());
+				if (reg2 > 0 && reg2 != reg1) {
+					regions[reg2 - 1].addEdge(chains.size());
+					if (!tree.addEdge(reg1-1, reg2-1)) tree.addEdge(reg2-1, reg1-1);
+				}
 				chains.push_back(chain);
 			}
 		}

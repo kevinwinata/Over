@@ -4,6 +4,7 @@
 #include <algorithm>
 
 Region::Region() {
+	relevant = true;
 	r_sums = 0;
 	g_sums = 0;
 	b_sums = 0;

@@ -58,3 +58,20 @@ void colorMapSegmentation(cv::Mat& img, std::vector<std::vector<long>>& labels, 
 
 	std::cout << "total regions : " << curlab << std::endl;
 }
+
+void cleanNoise(std::vector<std::vector<long>>& labels, std::vector<Region>& regions, int rows, int cols, int minSize)
+{
+	int rr = 0;
+	for (int i = 0; i < rows; i++) {
+		for (int j = 0; j < cols; j++) {
+			if (regions[labels[i][j] - 1].n < minSize && i > 0 && j > 0) {
+				labels[i][j] = labels[i - 1][j - 1];
+				regions[labels[i][j] - 1].relevant = false;
+			}
+		}
+	}
+	for (Region &r : regions) {
+		if (r.relevant) rr++;
+	}
+	std::cout << "relevant regions : " << rr << "\n";
+}

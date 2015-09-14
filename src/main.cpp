@@ -2,6 +2,7 @@
 #include <opencv2/highgui/highgui.hpp>
 #include <iostream>
 #include <array>
+#include <list>
 #include "region.h"
 #include "path.h"
 #include "vectortree.h"
@@ -16,6 +17,8 @@ std::vector<std::vector<char>> contour;
 std::vector<std::vector<std::pair<cv::Point, int>>> chains;
 std::vector<Region> regions;
 std::vector<Path> paths;
+std::vector<int> backgrounds;
+std::list<int> sortedregions;
 
 void mouseCallback(int event, int x, int y, int flags, void* userdata)
 {
@@ -54,23 +57,31 @@ int main(int argc, char** argv)
 
 	std::cout << "Segmentating ... \n";
 	colorMapSegmentation(img, labels, regions, maxDistance);
+	cleanNoise(labels, regions, img.rows, img.cols, 20);
+	VectorTree tree(regions.size());
+
 	cv::Mat img_seg(img.rows, img.cols, img.type());
 	drawSegments(img_seg, labels);
 	cv::namedWindow("Segmentated", CV_WINDOW_AUTOSIZE);
 	cv::imshow("Segmentated", img_seg);
 
+
 	std::cout << "\nDetecting contours ... \n";
 	cv::Mat img_contour = cv::Mat::zeros(img.rows, img.cols, CV_8UC1);
 	findContour(labels, contour, img.rows, img.cols);
+
 	drawContour(img_contour, contour);
 	cv::namedWindow("Contour", CV_WINDOW_AUTOSIZE);
 	cv::imshow("Contour", img_contour);
 
+
 	std::cout << "\nSeparating edges ... \n";
-	contourChainCode(contour, chains, labels, regions, img.rows, img.cols);
+	contourChainCode(contour, chains, labels, regions, tree, img.rows, img.cols);
+
 
 	std::cout << "\nDetecting corners ... \n";
 	findCorner(chains, paths, 0.2, 2);
+	std::cout << paths.size() << "\n";
 
 	cv::Mat img_chain = cv::Mat::zeros(img.rows, img.cols, CV_8UC3);
 	drawChains(img_chain, chains);
@@ -82,21 +93,36 @@ int main(int argc, char** argv)
 	cv::namedWindow("Corners", CV_WINDOW_AUTOSIZE);
 	cv::imshow("Corners", img_edge);
 
+
 	std::cout << "\nSorting edges ... \n";
 	edgeSort(regions, paths, 10);
 
+
 	std::cout << "\nOptimizations ... \n";
-	VectorTree tree(regions.size());
-	std::vector<int> backgrounds;
-	tree.buildTree(regions, backgrounds);
-	tree.optimize(regions, backgrounds, paths, labels);
+	//tree.buildTree(regions, backgrounds);
+	/*std::cout << "backgrounds : ";
+	for (int i = 0; i < regions.size(); i++) { 
+		if (tree.is_backgrounds[i]) {
+			backgrounds.push_back(i);
+			std::cout << i << " ";
+		}
+	}*/
+	std::cout << "\n";
+	tree.topologicalSort(sortedregions);
+	/*std::cout << "sortedregions : ";
+	for (int sreg : sortedregions) {
+		std::cout << sreg << " ";
+	}
+	std::cout << "\n";*/
+
+	tree.optimize(regions, paths, labels);
 
 	cv::setMouseCallback("Edges", mouseCallback, NULL);
 	cv::setMouseCallback("Corners", posCallback, NULL);
 
 	std::cout << "\nOutputting SVG ... \n";
 	writeVector("example.svg", regions, paths, img.cols, img.rows);
-	writeOptimizedVector("example-optimized.svg", tree, backgrounds, regions, paths, img.cols, img.rows);
+	writeOptimizedVector("example-optimized.svg", sortedregions, regions, paths, img.cols, img.rows);
 
 	std::cout << "\nDone.";
 	cv::waitKey(0); // Wait for a keystroke in the window
