@@ -139,7 +139,7 @@ void writeVector(std::string filename, std::vector<Region>& regions, std::vector
 			bool isHollow = false;
 			cv::Point prev, ref;
 			if (!region.edges.empty()) {
-				prev = paths[region.edges[0]].corners[0];
+				//prev = paths[region.edges[0]].corners[0];
 				ref = paths[region.edges[0]].corners[0];
 			}
 
@@ -161,18 +161,18 @@ void writeVector(std::string filename, std::vector<Region>& regions, std::vector
 					}
 				}
 
-				for (int i = 1; i < size; i++) {
+				for (int i = 0; i < size; i++) {
 					cv::Point& corner = (reverse) ? path.corners[size - 1 - i] : path.corners[i];
 					file << "L " << corner.x << " " << corner.y << " ";
 				}
-				prev = path.corners[size - 1];
+				//prev = path.corners[size - 1];
 				isHollow |= disconnect;
 				//if (reverse) file << " '" ;
 				//file << "/" << idx << " ";
 			}
 
 			file << "\" fill=\"" << region.getAvgColor() << "\" stroke=\"none\"";
-			if (isHollow) file << " fill-rule=\"evenodd\"";
+			//if (isHollow) file << " fill-rule=\"evenodd\"";
 			file << "/>\n";
 		}
 	}
@@ -207,7 +207,7 @@ void writeOptimizedVector(std::string filename, std::list<int>& sortedregions, s
 			bool isHollow = false;
 			cv::Point prev, ref;
 			if (!region.edges.empty()) {
-				prev = paths[region.edges[0]].corners[0];
+				//prev = paths[region.edges[0]].corners[0];
 				ref = paths[region.edges[0]].corners[0];
 			}
 
@@ -229,20 +229,20 @@ void writeOptimizedVector(std::string filename, std::list<int>& sortedregions, s
 					}
 				}
 
-				for (int i = 1; i < size; i++) {
+				for (int i = 0; i < size; i++) {
 					cv::Point& corner = (reverse) ? path.corners[size - 1 - i] : path.corners[i];
 					if (std::find(region.deletelist.begin(), region.deletelist.end(), corner) == region.deletelist.end()) {
 						file << "L " << corner.x << " " << corner.y << " ";
 					}
 				}
-				prev = path.corners[size - 1];
+				//prev = path.corners[size - 1];
 				isHollow |= disconnect;
 				//if (reverse) file << " '" ;
 				//file << "/" << idx << " ";
 			}
 
 			file << "\" fill=\"" << region.getAvgColor() << "\" stroke=\"none\"";
-			if (isHollow) file << " fill-rule=\"evenodd\"";
+			//if (isHollow) file << " fill-rule=\"evenodd\"";
 			file << "/>\n";
 		}
 	}

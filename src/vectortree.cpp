@@ -97,9 +97,12 @@ void VectorTree::topologicalSort(std::list<int>& sortedregions)
 			node_stack.pop();
 			if (node.first) {
 				if (!inserted[node.second]) {
-					sortedregions.push_front(node.second);
 					inserted[node.second] = true;
 				}
+				else {
+					sortedregions.remove(node.second);
+				}
+				sortedregions.push_front(node.second);
 				continue;
 			}
 			visited[node.second] = true;

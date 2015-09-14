@@ -73,7 +73,7 @@ void contourChainCode(std::vector<std::vector<char>>& contour, std::vector<std::
 				regions[reg1 - 1].addEdge(chains.size());
 				if (reg2 > 0 && reg2 != reg1) {
 					regions[reg2 - 1].addEdge(chains.size());
-					if (!tree.addEdge(reg1-1, reg2-1)) tree.addEdge(reg2-1, reg1-1);
+					if (!tree.addEdge(reg2-1, reg1-1)) tree.addEdge(reg1-1, reg2-1);
 				}
 				chains.push_back(chain);
 			}
