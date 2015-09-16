@@ -3,8 +3,8 @@
 #include <iostream>
 #include <array>
 #include <list>
-#include <cstdio>
 #include <ctime>
+#include <chrono>
 #include "region.h"
 #include "path.h"
 #include "vectortree.h"
@@ -21,8 +21,8 @@ std::vector<Region> regions;
 std::vector<Path> paths;
 std::vector<int> backgrounds;
 std::list<int> sortedregions;
-std::clock_t prev;
-double duration;
+std::chrono::time_point<std::chrono::system_clock> prev;
+std::chrono::duration<double> duration;
 
 void mouseCallback(int event, int x, int y, int flags, void* userdata)
 {
@@ -64,14 +64,14 @@ int main(int argc, char** argv)
 	cv::imshow("Source", img);*/
 
 	std::cout << "Segmentating ... \n";
-	prev = std::clock();
+	prev = std::chrono::system_clock::now();
 
 	colorMapSegmentation(img, labels, regions, maxDistance);
 	cleanNoise(labels, regions, img.rows, img.cols, 20);
 	VectorTree tree(regions.size());
 
-	duration = (std::clock() - prev) / (double)CLOCKS_PER_SEC;
-	std::cout << "time elapsed : " << duration << '\n';
+	duration = std::chrono::system_clock::now() - prev;
+	std::cout << "time elapsed : " << duration.count() << '\n';
 
 	/*cv::Mat img_seg(img.rows, img.cols, img.type());
 	drawSegments(img_seg, labels);
@@ -80,12 +80,12 @@ int main(int argc, char** argv)
 
 
 	std::cout << "\nDetecting contours ... \n";
-	prev = std::clock();
+	prev = std::chrono::system_clock::now();
 	cv::Mat img_contour = cv::Mat::zeros(img.rows, img.cols, CV_8UC1);
 	findContour(labels, contour, img.rows, img.cols);
 
-	duration = (std::clock() - prev) / (double)CLOCKS_PER_SEC;
-	std::cout << "time elapsed : " << duration << '\n';
+	duration = std::chrono::system_clock::now() - prev;
+	std::cout << "time elapsed : " << duration.count() << '\n';
 
 	/*drawContour(img_contour, contour);
 	cv::namedWindow("Contour", CV_WINDOW_AUTOSIZE);
@@ -93,11 +93,11 @@ int main(int argc, char** argv)
 
 
 	std::cout << "\nSeparating edges ... \n";
-	prev = std::clock();
+	prev = std::chrono::system_clock::now();
 	contourChainCode(contour, chains, labels, regions, tree, img.rows, img.cols);
 
-	duration = (std::clock() - prev) / (double)CLOCKS_PER_SEC;
-	std::cout << "time elapsed : " << duration << '\n';
+	duration = std::chrono::system_clock::now() - prev;
+	std::cout << "time elapsed : " << duration.count() << '\n';
 
 	/*cv::Mat img_chain = cv::Mat::zeros(img.rows, img.cols, CV_8UC3);
 	drawChains(img_chain, chains);
@@ -106,54 +106,55 @@ int main(int argc, char** argv)
 
 
 	std::cout << "\nDetecting corners ... \n";
-	prev = std::clock();
+	prev = std::chrono::system_clock::now();
 	findCorner(chains, paths, 0.2, 2);
 	std::cout << paths.size() << "\n";
 
-	duration = (std::clock() - prev) / (double)CLOCKS_PER_SEC;
-	std::cout << "time elapsed : " << duration << '\n';
+	duration = std::chrono::system_clock::now() - prev;
+	std::cout << "time elapsed : " << duration.count() << '\n';
 
 	/*cv::Mat img_edge = cv::Mat::zeros(img.rows, img.cols, CV_8UC3);
 	drawEdges(img_edge, chains, paths);
 	cv::namedWindow("Corners", CV_WINDOW_AUTOSIZE);
 	cv::imshow("Corners", img_edge);*/
 
-
 	std::cout << "\nSorting edges ... \n";
-	prev = std::clock();
-	edgeSort(regions, paths, 10);
+	prev = std::chrono::system_clock::now();
+	edgeSort(regions, paths, 4);
 
-	duration = (std::clock() - prev) / (double)CLOCKS_PER_SEC;
-	std::cout << "time elapsed : " << duration << '\n';
+	duration = std::chrono::system_clock::now() - prev;
+	std::cout << "time elapsed : " << duration.count() << '\n';
 
 
 	std::cout << "\nOptimizations ... \n";
-	prev = std::clock();
+	prev = std::chrono::system_clock::now();
 
 	tree.topologicalSort(sortedregions);
 
 	tree.optimize(regions, paths, labels);
 
-	duration = (std::clock() - prev) / (double)CLOCKS_PER_SEC;
-	std::cout << "time elapsed : " << duration << '\n';
+	duration = std::chrono::system_clock::now() - prev;
+	std::cout << "time elapsed : " << duration.count() << '\n';
 
-	/*cv::setMouseCallback("Edges", mouseCallback, NULL);
-	cv::setMouseCallback("Corners", posCallback, NULL);*/
+
+	cv::setMouseCallback("Chain Code", mouseCallback, NULL);
+	//cv::setMouseCallback("Corners", posCallback, NULL);
 
 	std::cout << "\nOutputting SVG ... \n";
 
-	prev = std::clock();
+	prev = std::chrono::system_clock::now();
 	std::string vectorfile = std::string(argv[1]) + ".svg";
 	writeVector(vectorfile, regions, paths, img.cols, img.rows);
-	duration = (std::clock() - prev) / (double)CLOCKS_PER_SEC;
-	std::cout << "time elapsed : " << duration << '\n';
+	duration = std::chrono::system_clock::now() - prev;
+	std::cout << "time elapsed : " << duration.count() << '\n';
 
-	prev = std::clock();
+	prev = std::chrono::system_clock::now();
 	std::string optimizedfile = std::string(argv[1]) + "-opt.svg";
 	writeOptimizedVector(optimizedfile, sortedregions, regions, paths, img.cols, img.rows);
-	duration = (std::clock() - prev) / (double)CLOCKS_PER_SEC;
-	std::cout << "time elapsed : " << duration << '\n';
+	duration = std::chrono::system_clock::now() - prev;
+	std::cout << "time elapsed : " << duration.count() << '\n';
 
 	std::cout << "\nDone.";
+	cv::waitKey(0);
 	return 0;
 }

@@ -129,46 +129,54 @@ void writeVector(std::string filename, std::vector<Region>& regions, std::vector
 	file << "height = \"" << height << "\" ";
 	file << "viewBox=\"0 0 " << width << " " << height << "\" xml:space=\"preserve\">\n";
 
-	for (Region region : regions) {
+	int regionsize = (int)regions.size(); 
+	int max_n = 0; int max_idx = 0;
+	for (int m = 0; m < regionsize; m++) {
+		if (regions[m].n > max_n) {
+			max_n = regions[m].n;
+			max_idx = m;
+		}
+	}
+	file << "<rect x=\"0\" y=\"0\" width = \"" << width << "\" height = \"" << height << "\" fill=\"" << regions[max_idx].getAvgColor() << "\" stroke=\"none\" />\n";
+
+	for (int m = 0; m < regionsize; m++) {
+		Region& region = regions[m];
 		int totalpoints = 0;
 		for (int pt : region.edges) totalpoints += paths[pt].corners.size();
 
 		if (totalpoints > 3) {
 			file << "<path d=\"";
 			bool first = true;
-			bool isHollow = false;
-			cv::Point prev, ref;
+			//bool isHollow = false;
+			cv::Point ref;
 			if (!region.edges.empty()) {
-				//prev = paths[region.edges[0]].corners[0];
 				ref = paths[region.edges[0]].corners[0];
 			}
 
-			for (int idx : region.edges) {
+			int edgesize = (int)region.edges.size();
+			for (int n = 0; n < edgesize; n++) {
+				int idx = region.edges[n];
 				Path& path = paths[idx];
 				int size = (int)path.corners.size();
 				bool reverse = std::find(region.reversed.begin(), region.reversed.end(), idx) != region.reversed.end();
-				bool disconnect = std::find(region.disconnected.begin(), region.disconnected.end(), idx) != region.disconnected.end();
+				bool disconnect = std::find(region.disconnected.begin(), region.disconnected.end(), n-1) != region.disconnected.end();
 
 				if (first) {
 					file << "M " << path.corners[0].x << " " << path.corners[0].y << " ";
 					first = false;
 				}
-				else {
-					if (disconnect) {
-						file << "L " << ref.x << " " << ref.y << " ";
-						file << "M " << path.corners[0].x << " " << path.corners[0].y << " ";
-						ref = path.corners[0];
-					}
+				if (disconnect) {
+					file << "\" fill=\"" << region.getAvgColor() << "\" stroke=\"none\"";
+					file << "/>\n";
+					file << "<path d=\"";
+					file << "M " << path.corners[0].x << " " << path.corners[0].y << " ";
 				}
 
 				for (int i = 0; i < size; i++) {
 					cv::Point& corner = (reverse) ? path.corners[size - 1 - i] : path.corners[i];
 					file << "L " << corner.x << " " << corner.y << " ";
+					first = false;
 				}
-				//prev = path.corners[size - 1];
-				isHollow |= disconnect;
-				//if (reverse) file << " '" ;
-				//file << "/" << idx << " ";
 			}
 
 			file << "\" fill=\"" << region.getAvgColor() << "\" stroke=\"none\"";
@@ -194,6 +202,16 @@ void writeOptimizedVector(std::string filename, std::list<int>& sortedregions, s
 	file << "height = \"" << height << "\" ";
 	file << "viewBox=\"0 0 " << width << " " << height << "\" xml:space=\"preserve\">\n";
 
+	int regionsize = (int)regions.size();
+	int max_n = 0; int max_idx = 0;
+	for (int m = 0; m < regionsize; m++) {
+		if (regions[m].n > max_n) {
+			max_n = regions[m].n;
+			max_idx = m;
+		}
+	}
+	file << "<rect x=\"0\" y=\"0\" width = \"" << width << "\" height = \"" << height << "\" fill=\"" << regions[max_idx].getAvgColor() << "\" stroke=\"none\" />\n";
+
 	for (int reg : sortedregions) {
 
 		Region& region = regions[reg];
@@ -204,29 +222,29 @@ void writeOptimizedVector(std::string filename, std::list<int>& sortedregions, s
 		if (totalpoints > 3) {
 			file << "<path d=\"";
 			bool first = true;
-			bool isHollow = false;
-			cv::Point prev, ref;
+			//bool isHollow = false;
+			cv::Point ref;
 			if (!region.edges.empty()) {
-				//prev = paths[region.edges[0]].corners[0];
 				ref = paths[region.edges[0]].corners[0];
 			}
 
-			for (int idx : region.edges) {
+			int edgesize = (int)region.edges.size();
+			for (int n = 0; n < edgesize; n++) {
+				int idx = region.edges[n];
 				Path& path = paths[idx];
 				int size = (int)path.corners.size();
 				bool reverse = std::find(region.reversed.begin(), region.reversed.end(), idx) != region.reversed.end();
-				bool disconnect = std::find(region.disconnected.begin(), region.disconnected.end(), idx) != region.disconnected.end();
+				bool disconnect = std::find(region.disconnected.begin(), region.disconnected.end(), n - 1) != region.disconnected.end();
 
 				if (first) {
 					file << "M " << path.corners[0].x << " " << path.corners[0].y << " ";
 					first = false;
 				}
-				else {
-					if (disconnect) {
-						file << "L " << ref.x << " " << ref.y << " ";
-						file << "M " << path.corners[0].x << " " << path.corners[0].y << " ";
-						ref = path.corners[0];
-					}
+				if (disconnect) {
+					file << "\" fill=\"" << region.getAvgColor() << "\" stroke=\"none\"";
+					file << "/>\n";
+					file << "<path d=\"";
+					file << "M " << path.corners[0].x << " " << path.corners[0].y << " ";
 				}
 
 				for (int i = 0; i < size; i++) {
@@ -234,11 +252,8 @@ void writeOptimizedVector(std::string filename, std::list<int>& sortedregions, s
 					if (std::find(region.deletelist.begin(), region.deletelist.end(), corner) == region.deletelist.end()) {
 						file << "L " << corner.x << " " << corner.y << " ";
 					}
+					first = false;
 				}
-				//prev = path.corners[size - 1];
-				isHollow |= disconnect;
-				//if (reverse) file << " '" ;
-				//file << "/" << idx << " ";
 			}
 
 			file << "\" fill=\"" << region.getAvgColor() << "\" stroke=\"none\"";

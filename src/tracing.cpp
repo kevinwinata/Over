@@ -144,6 +144,7 @@ void edgeSort(std::vector<Region>& regions, std::vector<Path>& paths, int t)
 
 	for (Region& region : regions) {
 		int size = (int)region.edges.size();
+		int lastdisconnect = 0;
 
 		for (int i = 0; i < size - 1; i++) {
 			Path& path = paths[region.edges[i]];
@@ -152,40 +153,71 @@ void edgeSort(std::vector<Region>& regions, std::vector<Path>& paths, int t)
 
 			int minidx = i;
 			int mindist = 65536;
-			bool front = true;
+			int dist;
+			bool isfront = true;
 
 			for (int idx = i + 1; idx < size; idx++) {
 				cv::Point front = paths[region.edges[idx]].corners.front();
-				int dist = std::abs(p.x - front.x) + std::abs(p.y - front.y);
+				dist = std::abs(p.x - front.x) + std::abs(p.y - front.y);
 
 				if (mindist > dist) {
 					mindist = dist;
 					minidx = idx;
+				}
+			}
+			
+			if (i != lastdisconnect) {
+				cv::Point front = paths[region.edges[lastdisconnect]].corners.front();
+				dist = std::abs(p.x - front.x) + std::abs(p.y - front.y);
+
+				if (mindist > dist) {
+					mindist = dist;
+					minidx = lastdisconnect;
 				}
 			}
 
 			for (int idx = i + 1; idx < size; idx++) {
 				cv::Point back = paths[region.edges[idx]].corners.back();
-				int dist = std::abs(p.x - back.x) + std::abs(p.y - back.y);
+				dist = std::abs(p.x - back.x) + std::abs(p.y - back.y);
 
 				if (mindist > dist) {
-					front = false;
+					isfront = false;
 					mindist = dist;
 					minidx = idx;
 				}
 			}
 
-			if (mindist < t) {
-				if (!front) region.reversed.push_back(region.edges[minidx]);
-				int temp = region.edges[minidx];
-				region.edges[minidx] = region.edges[i+1];
-				region.edges[i+1] = temp;
+			if (i != lastdisconnect) {
+				cv::Point back = paths[region.edges[lastdisconnect]].corners.back();
+				dist = std::abs(p.x - back.x) + std::abs(p.y - back.y);
 
-				//int c = (!matchfront && matchback) ? paths[temp].corners.size() - 1 : 0;
-				//paths[temp].corners[c] = p;
+				if (mindist > dist) {
+					isfront = false;
+					mindist = dist;
+					minidx = lastdisconnect;
+				}
+			}
+
+			if (mindist > t && lastdisconnect == i - 1) {
+				//std::cout << (lastdisconnect == i - 1) << "\n";
+				region.edges.erase(region.edges.begin() + i);
+				size--;
+				i--;
 			}
 			else {
-				region.disconnected.push_back(region.edges[i]);
+				if (minidx == lastdisconnect) {
+					lastdisconnect = i;
+					region.disconnected.push_back(i);
+				}
+				else {
+					if (!isfront) region.reversed.push_back(region.edges[minidx]);
+					int temp = region.edges[minidx];
+					region.edges[minidx] = region.edges[i + 1];
+					region.edges[i + 1] = temp;
+
+					//int c = (!matchfront && matchback) ? paths[temp].corners.size() - 1 : 0;
+					//paths[temp].corners[c] = p;
+				}
 			}
 		}
 	}
