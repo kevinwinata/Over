@@ -106,30 +106,39 @@ void simplify(std::vector<Region>& regions, long parent, long child, std::vector
 		}
 	}
 
-	for (int e : commonedge) {
-		int curidx = 0;
-		int lastidx = (int)paths[e].corners.size();
+	if (commonedge == regions[child].edges) {
+		for (int e : commonedge) {
+			for (cv::Point& cp : paths[e].corners) {
+				regions[parent].deletelist.push_back(cp);
+			}
+		}
+	}
+	else {
+		for (int e : commonedge) {
+			int curidx = 0;
+			int lastidx = (int)paths[e].corners.size();
 
-		while (curidx < lastidx) {
-			cv::Point& curpoint = paths[e].corners[curidx];
-			int legalidx = curidx + 1;
+			while (curidx < lastidx) {
+				cv::Point& curpoint = paths[e].corners[curidx];
+				int legalidx = curidx + 1;
 
-			for (int i = curidx + 2; i < lastidx; i++) {
-				cv::Point& targetpoint = paths[e].corners[i];
+				for (int i = curidx + 2; i < lastidx; i++) {
+					cv::Point& targetpoint = paths[e].corners[i];
 
-				if (!isIntersect(curpoint, targetpoint, labels, parent)) {
-					legalidx = i;
+					if (!isIntersect(curpoint, targetpoint, labels, parent)) {
+						legalidx = i;
+					}
 				}
-			}
 
-			int deleteidx = curidx + 1;
-			while (deleteidx < legalidx) {
-				regions[parent].deletelist.push_back(paths[e].corners[deleteidx]);
-				//std::cout << "delete " << paths[e].corners[deleteidx] << "\n";
-				deleteidx++;
-			}
+				int deleteidx = curidx + 1;
+				while (deleteidx < legalidx) {
+					regions[parent].deletelist.push_back(paths[e].corners[deleteidx]);
+					//std::cout << "delete " << paths[e].corners[deleteidx] << "\n";
+					deleteidx++;
+				}
 
-			curidx = legalidx;
+				curidx = legalidx;
+			}
 		}
 	}
 }

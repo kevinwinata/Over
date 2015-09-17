@@ -129,6 +129,9 @@ void writeVector(std::string filename, std::vector<Region>& regions, std::vector
 	file << "height = \"" << height << "\" ";
 	file << "viewBox=\"0 0 " << width << " " << height << "\" xml:space=\"preserve\">\n";
 
+	int numpoint = 0;
+	int skippedregion = 0;
+
 	int regionsize = (int)regions.size(); 
 	int max_n = 0; int max_idx = 0;
 	for (int m = 0; m < regionsize; m++) {
@@ -141,17 +144,14 @@ void writeVector(std::string filename, std::vector<Region>& regions, std::vector
 
 	for (int m = 0; m < regionsize; m++) {
 		Region& region = regions[m];
+
 		int totalpoints = 0;
-		for (int pt : region.edges) totalpoints += paths[pt].corners.size();
+		for (int pt : region.edges) totalpoints += paths[pt].corners.size() - 1;
 
 		if (totalpoints > 3) {
 			file << "<path d=\"";
 			bool first = true;
 			//bool isHollow = false;
-			cv::Point ref;
-			if (!region.edges.empty()) {
-				ref = paths[region.edges[0]].corners[0];
-			}
 
 			int edgesize = (int)region.edges.size();
 			for (int n = 0; n < edgesize; n++) {
@@ -163,19 +163,24 @@ void writeVector(std::string filename, std::vector<Region>& regions, std::vector
 
 				if (first) {
 					file << "M " << path.corners[0].x << " " << path.corners[0].y << " ";
-					first = false;
+					numpoint++;
+					//first = false;
 				}
 				if (disconnect) {
 					file << "\" fill=\"" << region.getAvgColor() << "\" stroke=\"none\"";
 					file << "/>\n";
 					file << "<path d=\"";
 					file << "M " << path.corners[0].x << " " << path.corners[0].y << " ";
+					numpoint++;
 				}
 
 				for (int i = 0; i < size; i++) {
-					cv::Point& corner = (reverse) ? path.corners[size - 1 - i] : path.corners[i];
-					file << "L " << corner.x << " " << corner.y << " ";
-					first = false;
+					if (!first) {
+						cv::Point& corner = (reverse) ? path.corners[size - 1 - i] : path.corners[i];
+						file << "L " << corner.x << " " << corner.y << " ";
+						numpoint++;
+					}
+					else first = false;
 				}
 			}
 
@@ -183,7 +188,11 @@ void writeVector(std::string filename, std::vector<Region>& regions, std::vector
 			//if (isHollow) file << " fill-rule=\"evenodd\"";
 			file << "/>\n";
 		}
+		else skippedregion++;
 	}
+
+	std::cout << "numpoint : " << numpoint << "\n";
+	//std::cout << "skippedregion : " << skippedregion << "\n";
 	file << "</svg>";
 	file.close();
 }
@@ -202,6 +211,9 @@ void writeOptimizedVector(std::string filename, std::list<int>& sortedregions, s
 	file << "height = \"" << height << "\" ";
 	file << "viewBox=\"0 0 " << width << " " << height << "\" xml:space=\"preserve\">\n";
 
+	int numpoint = 0;
+	int skippedregion = 0;
+
 	int regionsize = (int)regions.size();
 	int max_n = 0; int max_idx = 0;
 	for (int m = 0; m < regionsize; m++) {
@@ -216,10 +228,17 @@ void writeOptimizedVector(std::string filename, std::list<int>& sortedregions, s
 
 		Region& region = regions[reg];
 
-		int totalpoints = 0;
-		for (int pt : region.edges) totalpoints += paths[pt].corners.size();
+		int totalpoints = 0; int deletepoints = 0;
+		for (int pt : region.edges) {
+			totalpoints += paths[pt].corners.size() - 1;
+			for (cv::Point& cs : paths[pt].corners) {
+				if (std::find(region.deletelist.begin(), region.deletelist.end(), cs) != region.deletelist.end()) {
+					deletepoints++;
+				}
+			}
+		}
 
-		if (totalpoints > 3) {
+		if (totalpoints - deletepoints > 3) {
 			file << "<path d=\"";
 			bool first = true;
 			//bool isHollow = false;
@@ -238,21 +257,27 @@ void writeOptimizedVector(std::string filename, std::list<int>& sortedregions, s
 
 				if (first) {
 					file << "M " << path.corners[0].x << " " << path.corners[0].y << " ";
-					first = false;
+					numpoint++;
 				}
-				if (disconnect) {
-					file << "\" fill=\"" << region.getAvgColor() << "\" stroke=\"none\"";
-					file << "/>\n";
-					file << "<path d=\"";
-					file << "M " << path.corners[0].x << " " << path.corners[0].y << " ";
+				else if (disconnect) {
+					if (std::find(region.deletelist.begin(), region.deletelist.end(), path.corners[0]) == region.deletelist.end()) {
+						file << "\" fill=\"" << region.getAvgColor() << "\" stroke=\"none\"";
+						file << "/>\n";
+						file << "<path d=\"";
+						file << "M " << path.corners[0].x << " " << path.corners[0].y << " ";
+						numpoint++;
+					}
 				}
 
 				for (int i = 0; i < size; i++) {
-					cv::Point& corner = (reverse) ? path.corners[size - 1 - i] : path.corners[i];
-					if (std::find(region.deletelist.begin(), region.deletelist.end(), corner) == region.deletelist.end()) {
-						file << "L " << corner.x << " " << corner.y << " ";
+					if (!first) {
+						cv::Point& corner = (reverse) ? path.corners[size - 1 - i] : path.corners[i];
+						if (std::find(region.deletelist.begin(), region.deletelist.end(), corner) == region.deletelist.end()) {
+							file << "L " << corner.x << " " << corner.y << " ";
+							numpoint++;
+						}
 					}
-					first = false;
+					else first = false;
 				}
 			}
 
@@ -260,8 +285,11 @@ void writeOptimizedVector(std::string filename, std::list<int>& sortedregions, s
 			//if (isHollow) file << " fill-rule=\"evenodd\"";
 			file << "/>\n";
 		}
+		else skippedregion++;
 	}
 
+	std::cout << "numpoint : " << numpoint << "\n";
+	//std::cout << "skippedregion : " << skippedregion << "\n";
 	file << "</svg>";
 	file.close();
 }
