@@ -71,9 +71,29 @@ void contourChainCode(std::vector<std::vector<char>>& contour, std::vector<std::
 				}
 
 				regions[reg1 - 1].addEdge(chains.size());
+
 				if (reg2 > 0 && reg2 != reg1) {
 					regions[reg2 - 1].addEdge(chains.size());
-					if (!tree.addEdge(reg2-1, reg1-1)) tree.addEdge(reg1-1, reg2-1);
+
+					std::array<int, 8> countdir1 = { 0 };
+					std::array<int, 8> countdir2 = { 0 };
+					int chainsize = (int)chain.size();
+
+					for (int cidx = 0; cidx < chainsize; cidx++) {
+						if (cidx < chainsize / 2) countdir1[chain[cidx].second]++;
+						else countdir2[chain[cidx].second]++;
+					}
+					int trend1 = *std::max_element(countdir1.begin(), countdir1.end());
+					int trend2 = *std::max_element(countdir2.begin(), countdir2.end());
+
+					if ((trend1 == 5 && trend2 == 7) || (trend2 == 5 && trend1 == 7) ||
+						(trend1 == 3 && trend2 == 5) || (trend2 == 3 && trend1 == 5) ||
+						(trend1 == 4 && trend2 == 6) || (trend2 == 4 && trend1 == 6)) {
+						if (!tree.addEdge(reg1 - 1, reg2 - 1)) tree.addEdge(reg1 - 2, reg1 - 1);
+					}
+					else {
+						if (!tree.addEdge(reg2 - 1, reg1 - 1)) tree.addEdge(reg1 - 1, reg2 - 1);
+					}
 				}
 				chains.push_back(chain);
 			}
